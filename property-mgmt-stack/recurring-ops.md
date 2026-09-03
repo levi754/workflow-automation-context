@@ -3,6 +3,31 @@
 Companion to `cost-per-door.html`. See `building-cadence.html` for the full
 version (published as an Artifact).
 
+## Confirmed portfolio facts (Sept 2026)
+
+- **25 buildings, ~300 units** — ~12 units/building. Small multifamily, not
+  scattered-site: the 150–250 doors-per-manager band is realistic; the industry
+  54-per-employee average is not the target.
+- **bcompliant is already in place** for city compliance.
+- **Alvin.ai is a BigQuery cost-optimization platform** — not property management.
+
+## Corrections to the previous version
+
+1. **RegWatch withdrawn as a compliance recommendation.** bcompliant covers
+   violations, complaints and compliance across every NYC agency (FDNY, DOB, DOT,
+   ECB, DSNY, HPD) with push/email alerts, *plus* managed resolution — OATH
+   hearing representation, stipulation negotiation, correction certification.
+   RegWatch explicitly does not file. bcompliant is the stronger tool; don't add a
+   second. RegWatch retains one narrow use: a **one-time $15 report** to diagnose
+   how much of the stalled lead-gen spec its Prospector already assembles.
+2. **The "Alvin can migrate our data" premise collapses.** alvin.ai rewrites SQL
+   and manages BigQuery reservations; it has no PM product and no PMS
+   integrations. Either the domain is off and the company is Avery
+   (averyiq.com), or it's a new company whose real URL is on the original
+   outreach. Regardless: no AI agent vendor in this category does PMS migration.
+3. **Stack total drops to $897/mo = $2.99/door** for Steps 0–2, because two of
+   the three steps are already owned.
+
 ## Headline finding: the engine is already paid for
 
 Rent Manager has three features that together are exactly the system needed for
@@ -110,12 +135,67 @@ if a deposit lands in the wrong ledger.
 | Step | Tool | Covers | Cost |
 |---|---|---|---|
 | **0 (free)** | Rent Manager UDFs + Task Automation + rmAppSuite Pro | Asset registry, all recurring triggers, building info, newsletter via mass comms | **$0** |
-| 1 | RegWatch (Max, annual) | Per-building NYC compliance calendar from 250+ gov sources (HPD/DOB/DEP/FDNY), 12 recurring obligations, in-app alerts | $100/mo, 50 bldgs |
+| **1 (owned)** | bcompliant | All-NYC-agency violations, complaints, compliance, alerts, plus managed resolution/OATH representation | **$0** — already paid |
 | 2 | LeadSimple Platform | Collections, renewals, move-in/out, onboarding; retires rmVoIP + HubSpot + DocuSign | $897/mo ($2.99/door) |
 | 3 | One front-door AI, after 90 days of data | Vendoroo (RM native) / Haven (price) / Zuma (collections, free pilot) | $300–900/mo |
 
-Steps 0–2: **$997/mo = $3.32/door.** RegWatch tiers: Free $0 · Pro $15/13 · Max
-$100/50 · Unlimited $200/100 · one-time report $15.
+Steps 0–2: **$897/mo = $2.99/door** — one new line item; the rest already owned.
+
+## Other tools worth knowing (RM / AppFolio integrations)
+
+**Sorting rule:** some of these are software and some are outsourced labor
+wearing software's per-unit pricing. Software runs $1–3/unit. Managed services
+run ~$25/unit — 10× — because a human answers. Latchel at ~$25/unit is
+$7,500/mo across 300 units, i.e. roughly a full-time hire. Compare those to a
+headcount decision, not to Haven or Vendoroo.
+
+| Tool | Job | RM | AF | Price | Verdict |
+|---|---|---|---|---|---|
+| **RentCheck** | Residents self-complete move-in/out + periodic inspections | Yes | Yes | $1.25/unit | Best value for the move-in/out consistency ask |
+| **zInspector** | Inspections, photo/video, reports | Yes | Yes | Free ≤5 → $110/mo Max | Flat $110 may beat per-unit at 300 doors |
+| **AppWork** | Work orders, turnovers, inspections; mobile-first. bcompliant partner | Yes | — | One flat per-unit fee, all features | Possibly your "Appfull" — check if already owned |
+| **AvidXchange** | AP automation | Built-in | — | Quote | The lever to pull *instead of* a bookkeeper hire |
+| **LeaseTrack** | Renters insurance tracking | Built-in | — | Quote | Only if insurance chase is manual today |
+| **Zego / AmRent** | Payments; screening | Built-in | Native equiv | Quote | Check what you already use |
+| **ButterflyMX** | Smartphone access control, video intercom, self-guided tours | — | Stack | Hardware + per-door | Attacks the "access codes" problem, but it's capex |
+| **Conservice** | Utility allocation/billing | — | Stack | Quote | Only if you bill back utilities |
+| **HappyCo** | Inspections + unit/resident data | Yes | Stack | Per unit, **500-unit min** | Don't qualify yet |
+| **Latchel** | AI front office + staffed 24/7 emergency maintenance; claims 48% fewer after-hours emergencies | Check | Check | **~$25/unit** | $7,500/mo ≈ one hire |
+| **Lula** | After-hours/24-7 maintenance coordination | Check | Check | **Billed only when work completes** | Best cost structure — no fixed monthly |
+| **Anequim** | Remote staffing / call center | Built-in | — | Per seat | A hiring decision, not software |
+| **Second Nature** | Resident Benefits Package | Check | Check | $25–75/mo per resident; ~$156/home/yr GP | **See NYC caution** |
+| **Apartment List** | Pay-per-lease listings | ILS | Stack (Jul 2026) | Per signed lease | Zero fixed cost — easy to test |
+
+### ⚠️ NYC caution on Resident Benefits Packages
+
+The RBP model was built for **single-family rentals in lightly regulated states.**
+You operate 25 small multifamily buildings in NYC. If any units are
+rent-stabilized, a mandatory recurring charge on top of the legal regulated rent
+is a rent-overcharge exposure with treble-damage potential — it does not become
+safe by being called a benefits package. NY has also been tightening on mandatory
+tenant-side fees. **Do not implement any RBP, resident-billed filter program, or
+mandatory fee bundle without counsel reviewing it against each building's
+regulatory status.** A genuinely opt-in offering is a different question, but
+"voluntary" has a specific legal meaning here.
+
+### Three to shortlist
+
+- **RentCheck ($375/mo at 300 units)** — makes move-in/move-out inspections
+  resident-completed and consistent. Compare head-to-head with zInspector's flat
+  $110/mo, which may simply win at your size.
+- **Lula** — the only after-hours option costing nothing until work completes.
+  The right way to discover your true after-hours volume.
+- **AvidXchange** — quote it specifically against the bookkeeper hire (~$5,500/mo
+  loaded). It won't do everything a bookkeeper does; model both.
+
+### The AI marketplace point
+
+Rent Manager's marketplace has quietly filled with AI entrants — **Domos,
+1edge.ai, Brickwise AI, aiNgo, Insured AI, Rent Butter, Blanket** — alongside the
+Vendoroo integration. None are established enough to plan around today, but it
+means staying on Rent Manager is not the "no AI future" choice it looked like a
+year ago. **That materially weakens the AppFolio migration case,** which was
+substantially an argument about access to AI.
 
 ## Ambition ledger — from 225 turns of prior Claude history
 
@@ -174,10 +254,14 @@ exists, because the registry is what makes them evaluable.
 
 ## Open questions
 
-- **Is "Alvin" actually Avery (averyiq.com)?** Two rounds of searching found no
-  PM vendor named Alvin. A URL or email settles it.
-- **How many buildings, not units?** RegWatch tiers on monitored buildings (50 on
-  Max). 300 units across 12 buildings vs. 60 buildings are different purchases.
+- **What was the real vendor behind "Alvin"?** alvin.ai is a BigQuery tool. Find
+  the sender address on the original outreach; Avery (averyiq.com) is the closest
+  functional match.
+- **Is "Appfull" from the first message actually AppWork?** It fits — a Rent
+  Manager integration partner and a bcompliant partner.
+- **Do any of the 25 buildings contain rent-stabilized units?** Now the
+  highest-stakes open question — it determines whether the entire
+  ancillary-revenue category is available or legally off-limits.
 - **Commercial tenants in any building?** Changes drain jetting from annual to
   semi-annual and pulls in a separate compliance set.
 - **Is the lead-gen pipeline live or parked?** Decides whether the HubSpot
