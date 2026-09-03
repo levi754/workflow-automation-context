@@ -1,0 +1,852 @@
+<title>Cost Per Door</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root{
+  --ink:#12181B; --ink-2:#4A585E; --ink-3:#7C8A90;
+  --ground:#EDF0EF; --surface:#FFFFFF; --surface-2:#F5F7F6; --surface-3:#E4E9E7;
+  --line:#D6DCDA; --line-2:#C2CBC8;
+  --accent:#12655C; --accent-soft:#DCEAE7; --accent-ink:#0B4B44;
+  --gold:#8A6E12; --gold-soft:#F0E9CF;
+  --clay:#A8442A; --clay-soft:#F6E2DB;
+  --shadow:0 1px 2px rgba(18,24,27,.06), 0 8px 24px -12px rgba(18,24,27,.14);
+  --display:"Archivo",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#E8EDEB; --ink-2:#A2B0B4; --ink-3:#76868B;
+    --ground:#0F1516; --surface:#18201F; --surface-2:#1D2625; --surface-3:#242E2C;
+    --line:#2C3735; --line-2:#3A4644;
+    --accent:#4FBFAE; --accent-soft:#16332F; --accent-ink:#8FD8CB;
+    --gold:#C9A53C; --gold-soft:#332B12;
+    --clay:#E08466; --clay-soft:#3A211A;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E8EDEB; --ink-2:#A2B0B4; --ink-3:#76868B;
+  --ground:#0F1516; --surface:#18201F; --surface-2:#1D2625; --surface-3:#242E2C;
+  --line:#2C3735; --line-2:#3A4644;
+  --accent:#4FBFAE; --accent-soft:#16332F; --accent-ink:#8FD8CB;
+  --gold:#C9A53C; --gold-soft:#332B12;
+  --clay:#E08466; --clay-soft:#3A211A;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{background:var(--ground); color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased;}
+.wrap{max-width:1140px; margin:0 auto; padding:0 24px 88px;}
+h1,h2,h3,h4,.eyebrow,th,button,input,select,label,.mono{font-family:var(--display);}
+h1,h2,h3,h4{text-wrap:balance; margin:0; line-height:1.15; letter-spacing:-.015em;}
+.mono,td.num,th.num,.fig{font-family:var(--mono); font-variant-numeric:tabular-nums;}
+a{color:var(--accent-ink); text-decoration:underline; text-underline-offset:2px; text-decoration-thickness:1px;}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:2px;}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important;}}
+
+/* ---------- masthead ---------- */
+.mast{padding:52px 0 30px; border-bottom:2px solid var(--ink); display:flex; flex-direction:column; gap:18px;}
+.eyebrow{font-size:11.5px; font-weight:600; letter-spacing:.13em; text-transform:uppercase; color:var(--accent-ink);}
+.mast h1{font-size:clamp(38px,6.4vw,62px); font-weight:700;}
+.mast .sub{font-size:19px; color:var(--ink-2); max-width:62ch; margin:0;}
+.mast .meta{display:flex; flex-wrap:wrap; gap:8px 22px; font-family:var(--mono); font-size:12px; color:var(--ink-3);}
+
+/* ---------- generic section ---------- */
+section{padding-top:52px;}
+.shead{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; border-bottom:1px solid var(--line-2); padding-bottom:10px; margin-bottom:26px;}
+.shead h2{font-size:26px; font-weight:600;}
+.shead .note{font-family:var(--mono); font-size:12px; color:var(--ink-3); margin-left:auto;}
+.prose{max-width:66ch;}
+.prose p{margin:0 0 15px;}
+.prose h3{font-size:19px; font-weight:600; margin:30px 0 9px;}
+.prose ul{margin:0 0 15px; padding-left:20px;}
+.prose li{margin-bottom:7px;}
+.prose strong{font-weight:600;}
+.prose code{font-family:var(--mono); font-size:.87em; background:var(--surface-3); padding:1px 5px; border-radius:3px;}
+
+/* ---------- instrument panel ---------- */
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:6px; box-shadow:var(--shadow); overflow:hidden;}
+.controls{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:0; border-bottom:1px solid var(--line); background:var(--surface-2);}
+.ctl{padding:14px 18px; border-right:1px solid var(--line); display:flex; flex-direction:column; gap:7px;}
+.ctl:last-child{border-right:none;}
+.ctl > label{font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);}
+.ctl input[type=number], .ctl select{font-family:var(--mono); font-size:16px; font-weight:500; background:var(--surface); color:var(--ink); border:1px solid var(--line-2); border-radius:4px; padding:6px 8px; width:100%;}
+.presets{display:flex; gap:5px; flex-wrap:wrap;}
+.presets button{font-family:var(--mono); font-size:12.5px; padding:4px 9px; border:1px solid var(--line-2); background:var(--surface); color:var(--ink-2); border-radius:3px; cursor:pointer;}
+.presets button:hover{border-color:var(--accent); color:var(--accent-ink);}
+.presets button[aria-pressed=true]{background:var(--accent); border-color:var(--accent); color:var(--surface);}
+:root[data-theme="dark"] .presets button[aria-pressed=true], :root:not([data-theme="light"]) .presets button[aria-pressed=true]{color:var(--ground);}
+
+.scenarios{display:flex; flex-wrap:wrap; gap:0; border-bottom:1px solid var(--line);}
+.scenarios button{flex:1 1 190px; text-align:left; padding:13px 18px; background:var(--surface); border:none; border-right:1px solid var(--line); border-bottom:3px solid transparent; cursor:pointer; color:var(--ink-2); font-family:var(--display); display:flex; flex-direction:column; gap:3px;}
+.scenarios button:last-child{border-right:none;}
+.scenarios button .sc-k{font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);}
+.scenarios button .sc-n{font-size:14.5px; font-weight:600; color:var(--ink);}
+.scenarios button:hover{background:var(--surface-2);}
+.scenarios button[aria-pressed=true]{background:var(--accent-soft); border-bottom-color:var(--accent);}
+.scenarios button[aria-pressed=true] .sc-k{color:var(--accent-ink);}
+
+/* ---------- ledger table ---------- */
+.tscroll{overflow-x:auto;}
+table{width:100%; border-collapse:collapse; font-size:14px;}
+thead th{font-size:10.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); text-align:left; padding:11px 12px; border-bottom:1px solid var(--line-2); white-space:nowrap; background:var(--surface-2);}
+tbody td{padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:middle;}
+th.num,td.num{text-align:right;}
+tbody tr.off{color:var(--ink-3);}
+tbody tr.off .tname{text-decoration:line-through; text-decoration-color:var(--line-2);}
+.catrow td{background:var(--surface-3); font-family:var(--display); font-size:10.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-2); padding:7px 12px;}
+.tname{font-family:var(--display); font-weight:500; font-size:14px; color:inherit;}
+.tsub{font-family:var(--body); font-size:12.5px; color:var(--ink-3); line-height:1.4; margin-top:2px; max-width:46ch;}
+.rate-in{font-family:var(--mono); font-variant-numeric:tabular-nums; width:76px; text-align:right; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:3px; padding:3px 6px; font-size:13px;}
+tbody tr.off .rate-in{opacity:.5;}
+input[type=checkbox]{width:16px; height:16px; accent-color:var(--accent); cursor:pointer;}
+.unit{font-family:var(--mono); font-size:11px; color:var(--ink-3); white-space:nowrap;}
+.tag{display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; text-transform:uppercase; padding:2px 5px; border-radius:3px; white-space:nowrap; border:1px solid;}
+.tag.pub{color:var(--accent-ink); border-color:var(--accent); background:var(--accent-soft);}
+.tag.rep{color:var(--gold); border-color:var(--gold); background:var(--gold-soft);}
+.tag.quo{color:var(--clay); border-color:var(--clay); background:var(--clay-soft);}
+.minflag{font-family:var(--mono); font-size:10px; color:var(--gold); display:block; margin-top:1px;}
+tfoot td{padding:12px; border-top:2px solid var(--ink); font-family:var(--mono); font-weight:600; font-size:15px;}
+
+/* ---------- results strip ---------- */
+.results{display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); border-top:1px solid var(--line); background:var(--surface-2);}
+.res{padding:16px 18px; border-right:1px solid var(--line); display:flex; flex-direction:column; gap:4px;}
+.res:last-child{border-right:none;}
+.res .rl{font-size:10.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-family:var(--display);}
+.res .rv{font-family:var(--mono); font-variant-numeric:tabular-nums; font-size:25px; font-weight:500; letter-spacing:-.02em; line-height:1.1;}
+.res .rn{font-family:var(--body); font-size:12px; color:var(--ink-3);}
+.res.hero .rv{color:var(--accent-ink); font-size:31px; font-weight:600;}
+.res.warn .rv{color:var(--clay);}
+
+/* ---------- payroll ---------- */
+.payroll{margin-top:12px;}
+.prow{display:grid; grid-template-columns:1.6fr .5fr .9fr .6fr auto; gap:8px; align-items:center; padding:7px 0; border-bottom:1px solid var(--line);}
+.prow input{font-family:var(--mono); font-size:13.5px; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:3px; padding:5px 7px; width:100%; font-variant-numeric:tabular-nums;}
+.prow input.role{font-family:var(--display); text-align:left;}
+.prow .hdr{font-size:10.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-family:var(--display);}
+.prow.head{border-bottom:1px solid var(--line-2); padding-bottom:6px;}
+.xbtn{background:none; border:1px solid var(--line-2); color:var(--ink-3); border-radius:3px; width:26px; height:26px; cursor:pointer; font-family:var(--mono); line-height:1;}
+.xbtn:hover{border-color:var(--clay); color:var(--clay);}
+.addbtn{margin-top:12px; font-family:var(--display); font-size:13px; font-weight:500; padding:7px 14px; border:1px dashed var(--line-2); background:none; color:var(--ink-2); border-radius:4px; cursor:pointer;}
+.addbtn:hover{border-color:var(--accent); color:var(--accent-ink);}
+
+/* ---------- misc blocks ---------- */
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:22px;}
+.callout{border-left:3px solid var(--accent); background:var(--surface); padding:16px 20px; border-radius:0 5px 5px 0;}
+.callout.risk{border-left-color:var(--clay);}
+.callout h4{font-size:15px; font-weight:600; margin-bottom:6px;}
+.callout p{margin:0 0 9px; font-size:15px;}
+.callout p:last-child{margin-bottom:0;}
+.callout ul{margin:0; padding-left:19px; font-size:15px;}
+.callout li{margin-bottom:5px;}
+.legend{display:flex; gap:16px; flex-wrap:wrap; font-family:var(--mono); font-size:11.5px; color:var(--ink-3); padding:11px 14px; background:var(--surface-2); border:1px solid var(--line); border-radius:5px; margin-bottom:18px;}
+.legend span{display:flex; align-items:center; gap:6px;}
+.sw{width:11px; height:11px; border-radius:2px; display:inline-block;}
+.chartbox{background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:20px; box-shadow:var(--shadow);}
+.matrix td.num,.matrix th.num{font-family:var(--mono); font-variant-numeric:tabular-nums;}
+.matrix tbody tr:hover{background:var(--surface-2);}
+.matrix .step{color:var(--clay); font-family:var(--mono); font-size:11px;}
+.yes{color:var(--accent-ink); font-family:var(--mono); font-weight:600;}
+.no{color:var(--ink-3); font-family:var(--mono);}
+.part{color:var(--gold); font-family:var(--mono); font-size:12px;}
+.phase{display:grid; grid-template-columns:auto 1fr; gap:0 20px; align-items:start;}
+.phase + .phase{margin-top:0;}
+.pnum{font-family:var(--mono); font-size:12px; font-weight:600; color:var(--accent-ink); padding-top:4px; border-top:2px solid var(--accent); grid-column:1; white-space:nowrap;}
+.pbody{grid-column:2; border-top:1px solid var(--line); padding:14px 0 22px;}
+.pbody h4{font-size:17px; font-weight:600; margin-bottom:4px;}
+.pbody .when{font-family:var(--mono); font-size:11.5px; color:var(--ink-3); margin-bottom:8px;}
+.pbody p{margin:0 0 8px; font-size:15px;}
+.pbody ul{margin:0; padding-left:19px; font-size:15px;}
+.pbody li{margin-bottom:5px;}
+footer{margin-top:56px; padding-top:22px; border-top:1px solid var(--line-2); font-family:var(--mono); font-size:11.5px; color:var(--ink-3); line-height:1.7;}
+footer a{color:var(--ink-2);}
+@media (max-width:640px){
+  body{font-size:16px;}
+  .prow{grid-template-columns:1fr 1fr; gap:6px;}
+  .prow .hdr{display:none;}
+  .phase{grid-template-columns:1fr; gap:0;}
+  .pnum{grid-column:1;} .pbody{grid-column:1;}
+}
+</style>
+<div class="wrap">
+
+<header class="mast">
+  <div class="eyebrow">Property Management Stack Evaluation &middot; September 2026</div>
+  <h1>Cost Per Door</h1>
+  <p class="sub">A live model of software and payroll cost per door for a 300-unit NYC portfolio, scaled to 1,000 doors — plus the decision brief on Rent Manager vs. AppFolio, LeadSimple vs. Aptly, and the AI agent layer.</p>
+  <div class="meta">
+    <span>Every rate below is editable — overwrite with your real quotes.</span>
+    <span>Figures are per month unless noted.</span>
+  </div>
+</header>
+
+<section id="model">
+  <div class="shead">
+    <h2>The model</h2>
+    <div class="note">Pick a scenario, then adjust doors, seats and payroll</div>
+  </div>
+
+  <div class="legend">
+    <span><i class="tag pub">Published</i> vendor lists this price publicly</span>
+    <span><i class="tag rep">Reported</i> third-party reporting, not vendor-confirmed</span>
+    <span><i class="tag quo">Quote only</i> no public price — placeholder estimate, replace it</span>
+  </div>
+
+  <div class="panel">
+    <div class="scenarios" id="scenarios"></div>
+
+    <div class="controls">
+      <div class="ctl">
+        <label for="doors">Doors under management</label>
+        <input type="number" id="doors" min="1" max="20000" step="10" value="300">
+        <div class="presets" id="doorPresets"></div>
+      </div>
+      <div class="ctl">
+        <label for="seats">Office seats on software</label>
+        <input type="number" id="seats" min="1" max="200" step="1" value="6">
+        <span class="rn" style="font-family:var(--body);font-size:12px;color:var(--ink-3)">Drives per-user pricing (VoIP, DocuSign, HubSpot)</span>
+      </div>
+      <div class="ctl">
+        <label for="fee">Avg. mgmt fee / door / mo</label>
+        <input type="number" id="fee" min="0" step="5" value="85">
+        <span class="rn" style="font-family:var(--body);font-size:12px;color:var(--ink-3)">Your revenue per door, for the margin line</span>
+      </div>
+      <div class="ctl">
+        <label for="dpe">Staffing: doors per employee</label>
+        <input type="number" id="dpe" min="10" max="500" step="5" value="150">
+        <span class="rn" style="font-family:var(--body);font-size:12px;color:var(--ink-3)">Industry avg ≈ 54; automated multifamily 150–250</span>
+      </div>
+    </div>
+
+    <div class="tscroll">
+      <table id="ledger">
+        <thead>
+          <tr>
+            <th style="width:34px"></th>
+            <th>Line item</th>
+            <th class="num">Rate</th>
+            <th>Basis</th>
+            <th class="num">Monthly</th>
+            <th class="num">$ / door</th>
+            <th>Price confidence</th>
+          </tr>
+        </thead>
+        <tbody id="ledgerBody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4">Software subtotal</td>
+            <td class="num" id="swTotal">—</td>
+            <td class="num" id="swPerDoor">—</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="results" id="results"></div>
+  </div>
+
+  <div class="grid2" style="margin-top:26px">
+    <div>
+      <div class="shead" style="margin-bottom:14px"><h2 style="font-size:19px">Payroll</h2><div class="note">Example roster — edit to yours</div></div>
+      <div class="payroll" id="payroll">
+        <div class="prow head">
+          <span class="hdr">Role</span><span class="hdr">Count</span><span class="hdr">Salary</span><span class="hdr">Burden %</span><span></span>
+        </div>
+        <div id="payrollRows"></div>
+        <button class="addbtn" id="addRole">+ Add a role</button>
+      </div>
+    </div>
+    <div>
+      <div class="shead" style="margin-bottom:14px"><h2 style="font-size:19px">Cost per door as you grow</h2><div class="note">Selected scenario</div></div>
+      <div class="chartbox">
+        <div id="chart"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:26px">
+    <div class="shead" style="margin-bottom:14px"><h2 style="font-size:19px">Scaling matrix</h2><div class="note">Staff = your current roster, then your doors-per-employee target once it exceeds it</div></div>
+    <div class="panel tscroll">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>Doors</th>
+            <th class="num">Software / mo</th>
+            <th class="num">Software / door</th>
+            <th class="num">Staff</th>
+            <th class="num">Payroll / mo</th>
+            <th class="num">Payroll / door</th>
+            <th class="num">All-in / door</th>
+            <th class="num">Margin / door</th>
+          </tr>
+        </thead>
+        <tbody id="matrixBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="overlap">
+  <div class="shead">
+    <h2>What overlaps with what</h2>
+    <div class="note">The consolidation question, answered by column</div>
+  </div>
+  <p class="prose" style="margin-bottom:20px">Nine jobs have to get done. The question is not which vendor is cheapest — it is how few contracts can cover all nine columns. <strong>LeadSimple Platform covers seven of nine in a single line item.</strong> That, not its sticker price, is the argument for it.</p>
+  <div class="panel tscroll">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th>Job to be done</th>
+          <th>Rent&nbsp;Manager</th>
+          <th>AppFolio&nbsp;Plus</th>
+          <th>LeadSimple&nbsp;Platform</th>
+          <th>Aptly</th>
+          <th>Haven&nbsp;AI</th>
+          <th>Property&nbsp;Meld</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Accounting &amp; system of record</td><td class="yes">Core</td><td class="yes">Core</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Phone system / VoIP</td><td class="yes">rmVoIP</td><td class="no">—</td><td class="yes">Included</td><td class="no">None found</td><td class="part">Voice agent only</td><td class="no">—</td></tr>
+        <tr><td>Shared / unified inbox</td><td class="part">Add-on</td><td class="part">Partial</td><td class="yes">Included</td><td class="yes">Help Desk</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Sales CRM (owner acquisition)</td><td class="no">—</td><td class="no">—</td><td class="yes">Included</td><td class="part">Leasing-first</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Process / task workflow engine</td><td class="no">—</td><td class="part">Basic</td><td class="yes">Operations</td><td class="yes">Workflows</td><td class="no">—</td><td class="part">Maint. only</td></tr>
+        <tr><td>Maintenance coordination</td><td class="part">Basic</td><td class="yes">Smart Maint.</td><td class="yes">Enhanced</td><td class="part">Via AI agent</td><td class="yes">Voice intake</td><td class="yes">Core</td></tr>
+        <tr><td>E-signature</td><td class="no">—</td><td class="yes">Plus tier</td><td class="part">Integration</td><td class="no">None found</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>AI agent (voice / text / email)</td><td class="part">Orion</td><td class="yes">Realm-X</td><td class="yes">AI Engine</td><td class="yes">Native focus</td><td class="yes">Core</td><td class="part">AI intake</td></tr>
+        <tr><td>Renewals &amp; collections chase</td><td class="no">—</td><td class="part">Realm-X</td><td class="yes">Workflows</td><td class="yes">AI agents</td><td class="yes">Yes</td><td class="no">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="prose" style="margin-top:18px; font-size:14px; color:var(--ink-2)">Read the row, not the column: every path already ships some AI. That is why the AI agent vendors belong at the end of the sequence, not the start.</p>
+</section>
+
+<section id="findings">
+  <div class="shead">
+    <h2>Seven findings that should drive the decision</h2>
+  </div>
+  <div class="prose">
+    <h3>1. The PMS decision and the process-layer decision are independent — do not couple them</h3>
+    <p>Both LeadSimple and Aptly integrate with Rent Manager <em>and</em> AppFolio. Whichever process layer you pick survives a later PMS migration intact. That means you do not have to answer "AppFolio or not" before you answer "LeadSimple or Aptly" — and you should not try to do both at once. Simultaneously replacing your system of record and installing a new operating layer is the single most common way these projects blow up: when something breaks you cannot tell which change caused it.</p>
+
+    <h3>2. At 300 doors you have just cleared almost every vendor's minimum — this is the cheapest moment to buy</h3>
+    <p>Nearly all of these vendors charge <code>max(rate × doors, monthly minimum)</code>, and you are sitting right at the crossover:</p>
+    <ul>
+      <li>LeadSimple Platform's $500 minimum binds up to ~168 doors. You are past it.</li>
+      <li>AppFolio Core's ~$298 minimum binds up to ~200 units. Past it.</li>
+      <li>Haven AI's $298 minimum binds up to 298 doors. You are exactly at it.</li>
+      <li>Property Meld's $160 minimum binds up to 100 doors. Past it.</li>
+      <li>AppFolio Plus at $3.20/unit × 300 = <strong>$960 — precisely the reported minimum</strong>, meaning at your current size you would capture zero benefit from the per-unit rate.</li>
+    </ul>
+    <p>The consequence is the important part: <strong>your per-door software cost is essentially flat from 300 to 1,000 doors.</strong> There is no volume discount coming and no minimum-fee drag left to absorb. Software is not where your per-door economics change.</p>
+
+    <h3>3. Payroll is 4–6× the entire software decision, so decide on capability, not price</h3>
+    <p>One $65,000 ops hire, loaded at 28% for taxes and benefits, is $83,200/yr — <strong>$23.11 per door per month at 300 doors.</strong> Your entire software stack in any scenario above runs roughly $4–7 per door. The whole Rent-Manager-vs-AppFolio, LeadSimple-vs-Aptly debate spans about $3 per door, or a quarter of one employee.</p>
+    <p>So the real test is not "which is cheaper." It is <strong>"which one lets me go from 300 to 500 doors without adding a head."</strong> Hold headcount flat across that growth and per-door payroll falls from ~$23 to ~$14 — a $9/door improvement, three times the size of the entire software spread. Set the doors-per-employee input above to see it.</p>
+
+    <h3>4. LeadSimple and Aptly are not really competing for the same slot</h3>
+    <p><strong>LeadSimple is the consolidation play.</strong> At $2.99/door/mo annual, Platform bundles CRM, Phone + Inbox Pro, Operations, Enhanced Maintenance, an AI engine, and unlimited calling and texting. It retires four of your current line items at once: rmVoIP, HubSpot, DocuSign, and the task-manager gap you are trying to fill. Its net cost is materially lower than its sticker — toggle Scenario A above and compare against Today.</p>
+    <p>One number to brace for. On the baseline assumptions in the model — Rent Manager at $1.50/unit, six seats each on rmVoIP, DocuSign and HubSpot — Option A lands at <strong>$4.74 per door against today&rsquo;s $5.15</strong>. That is roughly $123 a month, a rounding error at your size. The honest read: <strong>consolidating on LeadSimple is approximately cost-neutral at 300 doors.</strong> You are not buying savings — you are getting a workflow engine, an AI engine, a phone system and the task manager you went looking for in the first place for about what you already spend, by retiring three contracts to fund one. Whether that flips into a genuine saving turns entirely on your real HubSpot, DocuSign and rmVoIP invoices, which is precisely why Phase 1 is a baseline exercise and not a formality.</p>
+    <p><strong>Aptly is the AI-layer play.</strong> Its five modules are AI Agents, Leasing, Knowledge, Workflows, and Help Desk, deliberately layered on top of your existing system of record. To answer your question directly: <strong>I found no phone system and no e-signature in Aptly's platform documentation.</strong> Pick Aptly and you keep paying for rmVoIP and DocuSign, so your contract count does not drop — you are buying capability, not consolidation. Aptly also publishes no pricing at all; it is demo-and-quote only, and the $40/$80-per-user figures floating around third-party directories are unverified.</p>
+
+    <h3>5. AppFolio's free year is the highest-leverage and highest-risk item on the table</h3>
+    <p>First, a number to pin down. "$329" reads two ways, and they are not close:</p>
+    <ul>
+      <li><strong>$329/month flat</strong> = $1.10/door at 300 doors — cheaper than almost anything here.</li>
+      <li><strong>$3.29/unit/month</strong> = $987/month at 300 doors, $3,290 at 1,000.</li>
+    </ul>
+    <p>Given AppFolio Plus publishes at roughly $3.20/unit, the quote is almost certainly <strong>$3.29 per unit per month</strong>. The gap between the two readings is about $7,900/year today and $35,500/year at 1,000 doors. Confirm this in writing before anything else.</p>
+    <p>Second, a free year of subscription is not a free migration. At 300 doors, moving your system of record is realistically 100–200 hours of internal staff time; at a $40/hr loaded rate that is $4,000–8,000 of payroll — comparable to the value of the free year itself, before you count a single reconciliation error. The offer is real value, but it is priced against your team's time, not against zero.</p>
+
+    <h3>6. Buy the AI agents last, and probably only one</h3>
+    <p>Every path already includes AI: LeadSimple Platform ships an AI engine and an AI voice agent, AppFolio Plus gates Realm-X and its autonomous "AI Performers," and Rent Manager has Orion. Layering Haven ($1/door, $298 min) or Vendoroo (~$3/door) on top before you have measured what is still manual means paying twice for the same capability.</p>
+    <p>EliseAI is worth ruling out explicitly at your size: reported at $3–6/unit with a <strong>~$25,000 annual minimum</strong>, which at 300 doors works out to $6.94/door/month regardless of usage. It is priced for 600+ door multifamily operators. Colleen AI is no longer buyable standalone — Entrata acquired it in June 2024 and folded it into ELI+.</p>
+
+    <h3>7. Two of your vendors could not be verified, and one dependency is hiding in your own systems</h3>
+    <p><strong>"Get Alvin"</strong> — no property management vendor by that name is findable. The closest match to what you described is <strong>Avery (averyiq.com)</strong>, a Y Combinator-backed AI contact center for residential PM that answers calls, texts and emails, schedules tours, opens work orders and coordinates vendors; it reports handling 88% of interactions without a human. Confirm whether Avery is the company you meant.</p>
+    <p><strong>"Savant"</strong> — no Rent Manager email-to-notes integration by that name is findable either. The product matching your description precisely is <strong>Email2CRM by Aargh Software</strong>, which creates history, notes and service issues in Rent Manager from Outlook or Gmail, attachments included. Worth confirming what you are actually paying for, because both LeadSimple's and Aptly's unified inbox may make it redundant.</p>
+    <p><strong>The hidden dependency:</strong> your NYC developer lead-generation pipeline writes qualified leads into HubSpot with custom properties, per <code>current-status.md</code> in this repo. Both consolidation paths assume you drop HubSpot. Before you cancel it, confirm the replacement CRM accepts programmatic lead creation with custom fields via API or Zapier — otherwise you retire the destination your Supabase pipeline is pointed at. The cheap answer is to keep HubSpot's free tier as the lead-gen landing zone and run the PM sales pipeline in LeadSimple.</p>
+  </div>
+</section>
+
+<section id="risks">
+  <div class="shead"><h2>Get these in writing before you sign anything</h2></div>
+  <div class="grid2">
+    <div class="callout risk">
+      <h4>AppFolio</h4>
+      <ul>
+        <li>Which tier the quote covers — Core, Plus, or Max.</li>
+        <li>The per-unit rate <em>and</em> the monthly minimum after the free year. Reported Plus minimums range from $960 to $1,500; that spread is $6,480/yr.</li>
+        <li>A renewal price cap, in writing, for years 2–3.</li>
+        <li>Whether onboarding and data migration are waived (list price reported at $400–1,000, but expect materially more at 300 doors).</li>
+        <li>What bills separately <em>during</em> the free year — payment processing is reported at $1/unit/mo or $2.49/resident transaction, plus screening and e-sign.</li>
+        <li>Exactly what data migrates: full ledger history, tenant notes, work order history, call recordings, attachments.</li>
+      </ul>
+    </div>
+    <div class="callout risk">
+      <h4>LeadSimple</h4>
+      <ul>
+        <li>Is e-signature <strong>native</strong> or an integration requiring a third-party signing account? It was announced February 2026 as an integration on phased rollout — if it wraps a provider, you may not actually drop DocuSign.</li>
+        <li>Platform's $500 minimum is described as an <em>annual contract</em> minimum. Confirm the commitment length and the monthly floor.</li>
+        <li>Included AI voice minutes and what overages cost once you exceed them.</li>
+        <li>Whether Operations triggers reliably off Rent Manager data, or needs a middleware layer.</li>
+        <li>Process consulting is quoted at $3,000–9,000 and is not in the per-door price. Decide whether you need it.</li>
+      </ul>
+    </div>
+    <div class="callout risk">
+      <h4>Rent Manager</h4>
+      <ul>
+        <li>Your actual current invoice, line-itemized — you cannot price what you are dropping without it. Rent Manager went quote-only in 2026; historical tiers were $1.00 / $1.50 / $2.50 per unit.</li>
+        <li>rmVoIP's real per-seat cost, broken out separately.</li>
+        <li>What happens to historical call recordings tied to contact records if you leave rmVoIP.</li>
+        <li>What Orion AI costs and which tier gates it.</li>
+      </ul>
+    </div>
+    <div class="callout risk">
+      <h4>DocuSign — a live overage risk</h4>
+      <p>Business Pro is $40/user/mo annual and includes <strong>only 100 envelopes per user per year, with no rollover.</strong> At 300 doors, leases plus renewals plus owner agreements plus vendor paperwork will breach that on a small seat count, and overage envelopes are billed on top. Pull your actual envelope count for the last 12 months before comparing anything — your real DocuSign cost may be well above the $40 line.</p>
+    </div>
+  </div>
+</section>
+
+<section id="plan">
+  <div class="shead"><h2>The sequence</h2><div class="note">Ordered by dependency — each phase produces the input the next one needs</div></div>
+  <div class="prose" style="margin-bottom:22px"><p>These phases are genuinely sequential: Phase 4 cannot be decided well without Phase 3's data, and Phase 5's spend cannot be targeted without Phase 3's measurements.</p></div>
+
+  <div class="phase">
+    <div class="pnum">Phase 1 &middot; Weeks 1–2</div>
+    <div class="pbody">
+      <h4>Establish your real baseline</h4>
+      <div class="when">Nothing gets decided until these numbers exist</div>
+      <p>You cannot compute a saving against an unknown. Pull, in one document:</p>
+      <ul>
+        <li>Line-itemized current spend: Rent Manager, rmVoIP, the email integration, DocuSign, HubSpot — and your seat count on each.</li>
+        <li>DocuSign envelope volume, trailing 12 months.</li>
+        <li>Inbound call, email and text volume per week, and roughly what share is maintenance vs. leasing vs. accounting. This becomes the ROI denominator for every AI vendor later.</li>
+        <li>Confirm the two unverified vendors: is "Alvin" actually Avery, and is "Savant" actually Email2CRM?</li>
+        <li>Written quotes: LeadSimple Platform at 300 doors annual, Aptly custom quote, AppFolio with all six items from the checklist above, Rent Manager renewal with rmVoIP broken out.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">Phase 2 &middot; Weeks 3–4</div>
+    <div class="pbody">
+      <h4>Choose the process layer — LeadSimple or Aptly</h4>
+      <div class="when">Decided on capability, with price as the tiebreak</div>
+      <p>Demo both against the <em>same three real workflows</em>, not a generic tour. Use: (a) onboarding a new building, (b) maintenance intake through vendor dispatch to close, (c) a lease renewal 120 days out. Score each on four things:</p>
+      <ul>
+        <li>Does it trigger automatically off Rent Manager data, or does someone have to start it by hand?</li>
+        <li>Can a non-technical office person edit a workflow without a consultant?</li>
+        <li>Can it carry an NYC-specific compliance calendar — HPD registration, Local Law inspections, boiler and elevator filings, lead paint?</li>
+        <li>How many of your current contracts does it actually let you cancel?</li>
+      </ul>
+      <p>On current evidence, if consolidation is the goal LeadSimple wins on column coverage; if AI depth on top of an unchanged stack is the goal, Aptly is the sharper tool.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">Phase 3 &middot; Weeks 5–10</div>
+    <div class="pbody">
+      <h4>Install the process layer on Rent Manager — do not migrate yet</h4>
+      <div class="when">The cheap, reversible, high-ROI move</div>
+      <ul>
+        <li>Build only the three workflows from Phase 2 first. Resist building twenty; unfinished workflows are worse than none.</li>
+        <li>Run rmVoIP and the new phone system in parallel for 60 days before you cancel anything. Port numbers last.</li>
+        <li>Keep DocuSign until you have personally sent and completed a real lease through the replacement.</li>
+        <li>Measure weekly: manual touches per work order, speed-to-lead on new inquiries, renewal capture rate, and hours per new building onboarded.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">Phase 4 &middot; Month 4</div>
+    <div class="pbody">
+      <h4>Now decide AppFolio, with evidence</h4>
+      <div class="when">The decision Phase 3 makes answerable</div>
+      <p>After ten weeks on a real process layer you will know something you cannot know today: <strong>whether your pain was Rent Manager or your processes.</strong> If it was processes, the migration may be unnecessary — and you have saved the free year for a moment when you actually want it. These offers recur; the disruption of a badly-timed migration does not un-happen.</p>
+      <p>If you do migrate, do it in the accounting off-season, never at year-end close, and budget the 100–200 internal hours explicitly as a real cost.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">Phase 5 &middot; Month 5 onward</div>
+    <div class="pbody">
+      <h4>Buy AI agents against measured gaps, one at a time</h4>
+      <div class="when">Targeted by Phase 3's volume data</div>
+      <ul>
+        <li>Take the single highest-volume category still being handled manually and buy one specialist against it — Haven for voice intake at $1/door, Property Meld at $1.60/door if maintenance is the bottleneck, Avery if it is the phone line generally.</li>
+        <li>Write the kill criterion <em>before</em> the pilot starts: the specific percentage of that category handled without a human at 90 days, below which you cancel.</li>
+        <li>One vendor, one workflow, one quarter. Never two AI pilots at once — you will not be able to attribute the result.</li>
+        <li>Skip EliseAI until you are past ~600 doors; its annual minimum makes it the most expensive option per door at your size.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="open">
+  <div class="shead"><h2>What I need from you to tighten this</h2></div>
+  <div class="prose">
+    <p>Five things would materially change the numbers above, and I have modeled assumptions in their place:</p>
+    <ul>
+      <li><strong>Is the AppFolio quote $329/month or $3.29/unit/month?</strong> Modeled as $3.29/unit. This is the largest single uncertainty on the page.</li>
+      <li><strong>Your current office headcount and salaries.</strong> The payroll panel is seeded with an example roster — two office staff and a bookkeeper — because payroll drives four to six times more per-door cost than software does, so these are the numbers most worth getting right.</li>
+      <li><strong>Seat counts</strong> on rmVoIP, DocuSign and HubSpot, plus what you actually pay Rent Manager. Modeled at 6 seats and Rent Manager's historical $1.50/unit Plus tier.</li>
+      <li><strong>Your average management fee per door.</strong> Modeled at $85/door/month for the margin line. NYC multifamily on 10+ unit buildings varies widely, and if you bill a flat per-unit fee you will know this figure exactly.</li>
+      <li><strong>Confirm "Alvin" and "Savant."</strong> Best matches are Avery (averyiq.com) and Email2CRM by Aargh Software; also tell me the "couple of other ones" you couldn't recall and I will price them in.</li>
+    </ul>
+    <p>One caveat on the whole page: Aptly, Rent Manager, Avery and Zuma all publish no pricing whatsoever, and several AppFolio and Haven figures come from third-party reporting rather than the vendors. Every such rate is tagged and editable — treat the tagged ones as placeholders to overwrite with real quotes, not as facts.</p>
+  </div>
+</section>
+
+<footer>
+  <div style="margin-bottom:10px">Sources — pricing verified September 2026. Published figures come from vendor pricing pages; reported figures from third-party pricing research; quote-only vendors publish nothing.</div>
+  <div>
+    <a href="https://www.leadsimple.com/pricing/">LeadSimple pricing</a> &middot;
+    <a href="https://www.leadsimple.com/blog/introducing-jot-form-e-signature-integrations-custom-property-forms">LeadSimple e-signature announcement</a> &middot;
+    <a href="https://www.getaptly.com/pricing">Aptly pricing</a> &middot;
+    <a href="https://www.getaptly.com/platform/">Aptly platform</a> &middot;
+    <a href="https://costbench.com/software/property-management/appfolio/">AppFolio pricing research</a> &middot;
+    <a href="https://appfoliopricing.com/">AppFolio tier minimums</a> &middot;
+    <a href="https://www.itqlick.com/rent-manager/pricing">Rent Manager pricing</a> &middot;
+    <a href="https://aitoolsbakery.com/blog/rent-manager-review/">Rent Manager Orion AI</a> &middot;
+    <a href="https://www.usehaven.ai/">Haven AI</a> &middot;
+    <a href="https://propertymeld.com/pricing/">Property Meld pricing</a> &middot;
+    <a href="https://aitoolsbakery.com/blog/eliseai-review/">EliseAI pricing</a> &middot;
+    <a href="https://averyiq.com/">Avery (AveryIQ)</a> &middot;
+    <a href="https://aarghsoftware.com/email2crm/">Email2CRM for Rent Manager</a> &middot;
+    <a href="https://ecom.docusign.com/plans-and-pricing/esignature">DocuSign pricing</a> &middot;
+    <a href="https://www.getkera.com/blogs/how-many-doors-per-property-manager/">Doors-per-manager benchmarks</a> &middot;
+    <a href="https://www.ziprecruiter.com/Salaries/Property-Management-Bookkeeper-Salary">Bookkeeper salary data</a> &middot;
+    <a href="https://www.narpm.org/docs/NARPM_FinancialPerformanceGuideOverview.pdf">NARPM Financial Performance Guide</a>
+  </div>
+</footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var ROWS = [
+ {id:"rm",       cat:"Current stack",              name:"Rent Manager (Plus tier)",        unit:"door", rate:1.50, min:0,    conf:"quo", note:"Quote-only since 2026. Historical published tiers were $1.00 / $1.50 / $2.50 per unit."},
+ {id:"rmvoip",   cat:"Current stack",              name:"rmVoIP",                          unit:"seat", rate:30,   min:0,    conf:"quo", note:"No public price. Rent Manager is the only major PMS with a fully built-in phone platform."},
+ {id:"email2crm",cat:"Current stack",              name:"Email-to-notes integration",      unit:"flat", rate:75,   min:0,    conf:"quo", note:"Your “Savant”. Closest verified match: Email2CRM by Aargh Software."},
+ {id:"docusign", cat:"Current stack",              name:"DocuSign Business Pro",           unit:"seat", rate:40,   min:0,    conf:"pub", note:"Annual billing. Only 100 envelopes per user per year, no rollover — overages bill on top."},
+ {id:"hubspot",  cat:"Current stack",              name:"HubSpot CRM (Sales Pro)",         unit:"seat", rate:100,  min:0,    conf:"rep", note:"Confirm your actual plan and seat count. Also the destination for your lead-gen pipeline."},
+
+ {id:"ls_plat",  cat:"Process, CRM & phone layer", name:"LeadSimple Platform",             unit:"door", rate:2.99, min:500,  conf:"pub", note:"All-in-one: CRM + Phone/Inbox Pro + Operations + Enhanced Maintenance + AI Engine + unlimited calling and texting. $3.49 month-to-month."},
+ {id:"ls_ops",   cat:"Process, CRM & phone layer", name:"LeadSimple Operations only",      unit:"door", rate:1.35, min:200,  conf:"pub", note:"Workflow engine alone — branching logic, PMS auto-triggers, escalation dashboards. $1.55 month-to-month."},
+ {id:"ls_crm",   cat:"Process, CRM & phone layer", name:"LeadSimple CRM only",             unit:"flat", rate:99,   min:0,    conf:"pub", note:"Includes 1 user and 1 pipeline; each additional user or pipeline is $30."},
+ {id:"ls_phone", cat:"Process, CRM & phone layer", name:"LeadSimple Phone + Inbox Pro",    unit:"seat", rate:59,   min:0,    conf:"pub", note:"Ring groups, warm transfers, AI voice agent (45 min/user), 600 min and 1,200 SMS per user."},
+ {id:"aptly",    cat:"Process, CRM & phone layer", name:"Aptly",                           unit:"door", rate:2.50, min:0,    conf:"quo", note:"No public pricing at all. No phone system and no e-signature found — you keep rmVoIP and DocuSign. Placeholder rate: replace with your quote."},
+
+ {id:"af_quote", cat:"AppFolio (migration option)",name:"AppFolio — your quoted rate", unit:"door", rate:3.29, min:960,  conf:"quo", note:"Reading “$329” as $3.29 per unit per month. To model the free first year, set the rate and minimum to 0."},
+ {id:"af_core",  cat:"AppFolio (migration option)",name:"AppFolio Core",                   unit:"door", rate:1.49, min:298,  conf:"rep", note:"No AI, no Smart Maintenance, no e-signature. Email and chat support only. 50-unit floor."},
+ {id:"af_plus",  cat:"AppFolio (migration option)",name:"AppFolio Plus",                   unit:"door", rate:3.20, min:960,  conf:"rep", note:"Where Realm-X AI, Smart Maintenance and e-signature live. Reported minimum ranges $960–$1,500 — confirm which."},
+ {id:"af_max",   cat:"AppFolio (migration option)",name:"AppFolio Max",                    unit:"door", rate:5.00, min:1500, conf:"rep", note:"Dedicated account manager, custom report builder, advanced API access."},
+ {id:"af_pay",   cat:"AppFolio (migration option)",name:"AppFolio payment processing",     unit:"door", rate:1.00, min:0,    conf:"rep", note:"$1/unit/mo, or $2.49 per resident ACH/card transaction. Bills separately from subscription."},
+
+ {id:"haven",    cat:"AI agent layer",             name:"Haven AI",                        unit:"door", rate:1.00, min:298,  conf:"rep", note:"Voice agents for maintenance and leasing intake. The $298 minimum binds up to 298 doors — you are exactly at it."},
+ {id:"meld",     cat:"AI agent layer",             name:"Property Meld (Core)",            unit:"door", rate:1.60, min:160,  conf:"rep", note:"Conversational AI repair intake, emergency screening, vendor scheduling. OPS tier is $2.00/unit."},
+ {id:"vendoroo", cat:"AI agent layer",             name:"Vendoroo",                        unit:"door", rate:3.00, min:0,    conf:"rep", note:"AI maintenance coordination and vendor dispatch."},
+ {id:"avery",    cat:"AI agent layer",             name:"Avery (AveryIQ)",                 unit:"door", rate:2.00, min:0,    conf:"quo", note:"AI contact center — answers calls, texts, email; books tours, opens work orders. Likely the company you called “Alvin”. Placeholder rate."},
+ {id:"elise",    cat:"AI agent layer",             name:"EliseAI",                         unit:"door", rate:4.50, min:2083, conf:"rep", note:"Reported $3–$6/unit with a ~$25,000 annual minimum, i.e. a $2,083/mo floor. Priced for 600+ door operators."}
+];
+
+var SCENARIOS = [
+ {key:"Baseline",  name:"Today",                      on:["rm","rmvoip","email2crm","docusign","hubspot"]},
+ {key:"Option A",  name:"Consolidate on LeadSimple",  on:["rm","email2crm","ls_plat"]},
+ {key:"Option B",  name:"Aptly as the AI layer",      on:["rm","rmvoip","email2crm","docusign","aptly"]},
+ {key:"Option C",  name:"AppFolio + LeadSimple",      on:["af_quote","af_pay","ls_plat"]},
+ {key:"Option D",  name:"Maximum automation",         on:["rm","email2crm","ls_plat","haven","meld"]}
+];
+
+var DEFAULT_PAYROLL = [
+ {role:"Property manager",   count:1, salary:75000, burden:28},
+ {role:"Office / ops admin", count:1, salary:58000, burden:28},
+ {role:"Bookkeeper",         count:1, salary:52000, burden:28}
+];
+var DOOR_STEPS = [300,500,700,1000];
+var CONF_LABEL = {pub:"Published", rep:"Reported", quo:"Quote only"};
+
+var state = {
+  doors:300, seats:6, fee:85, dpe:150, scenario:1,
+  on:{}, rates:{}, payroll:JSON.parse(JSON.stringify(DEFAULT_PAYROLL))
+};
+
+/* ---------- persistence ---------- */
+var KEY="cpd-model-v1";
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function load(){
+  try{
+    var raw=localStorage.getItem(KEY); if(!raw) return;
+    var s=JSON.parse(raw);
+    if(s && typeof s==="object"){
+      ["doors","seats","fee","dpe","scenario"].forEach(function(k){ if(typeof s[k]==="number") state[k]=s[k]; });
+      if(s.on) state.on=s.on;
+      if(s.rates) state.rates=s.rates;
+      if(Array.isArray(s.payroll) && s.payroll.length) state.payroll=s.payroll;
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+/* ---------- helpers ---------- */
+function $(id){ return document.getElementById(id); }
+function rateOf(r){ return (state.rates[r.id]!==undefined && state.rates[r.id]!==null) ? state.rates[r.id] : r.rate; }
+function minOf(r){ return (state.rates[r.id+"__min"]!==undefined) ? state.rates[r.id+"__min"] : r.min; }
+function money(n){ return "$"+Math.round(n).toLocaleString("en-US"); }
+function money2(n){ return "$"+n.toFixed(2); }
+
+function rowCost(r, doors, seats){
+  var base = r.unit==="door" ? rateOf(r)*doors : r.unit==="seat" ? rateOf(r)*seats : rateOf(r);
+  return Math.max(base, minOf(r)||0);
+}
+function softwareAt(doors, seats, onMap){
+  var t=0;
+  ROWS.forEach(function(r){ if(onMap[r.id]) t += rowCost(r, doors, seats); });
+  return t;
+}
+function blendedLoaded(){
+  var head=0, total=0;
+  state.payroll.forEach(function(p){
+    var c=Math.max(0,+p.count||0);
+    head += c;
+    total += c*(+p.salary||0)*(1+(+p.burden||0)/100);
+  });
+  return {head:head, monthly:total/12, avgMonthly: head>0 ? (total/12)/head : 0};
+}
+function applyScenario(i){
+  state.scenario=i;
+  state.on={};
+  SCENARIOS[i].on.forEach(function(id){ state.on[id]=true; });
+}
+
+/* ---------- build scenario tabs ---------- */
+function buildScenarios(){
+  var el=$("scenarios");
+  el.innerHTML="";
+  SCENARIOS.forEach(function(s,i){
+    var b=document.createElement("button");
+    b.type="button";
+    b.innerHTML='<span class="sc-k">'+s.key+'</span><span class="sc-n">'+s.name+'</span>';
+    b.addEventListener("click", function(){ applyScenario(i); render(); save(); });
+    el.appendChild(b);
+  });
+}
+function buildDoorPresets(){
+  var el=$("doorPresets");
+  el.innerHTML="";
+  DOOR_STEPS.forEach(function(d){
+    var b=document.createElement("button");
+    b.type="button"; b.textContent=d.toLocaleString("en-US");
+    b.addEventListener("click", function(){ state.doors=d; render(); save(); });
+    el.appendChild(b);
+  });
+}
+
+/* ---------- ledger ---------- */
+function buildLedger(){
+  var tb=$("ledgerBody");
+  tb.innerHTML="";
+  var lastCat=null;
+  ROWS.forEach(function(r){
+    if(r.cat!==lastCat){
+      lastCat=r.cat;
+      var cr=document.createElement("tr");
+      cr.className="catrow";
+      cr.innerHTML='<td colspan="7">'+r.cat+'</td>';
+      tb.appendChild(cr);
+    }
+    var tr=document.createElement("tr");
+    tr.setAttribute("data-row", r.id);
+    var basis = r.unit==="door" ? "per door" : r.unit==="seat" ? "per seat" : "flat";
+    tr.innerHTML =
+      '<td><input type="checkbox" data-tog="'+r.id+'" aria-label="Include '+r.name+'"></td>'+
+      '<td><span class="tname">'+r.name+'</span><div class="tsub">'+r.note+'</div></td>'+
+      '<td class="num"><input class="rate-in" type="number" step="0.01" min="0" data-rate="'+r.id+'" aria-label="Rate for '+r.name+'"></td>'+
+      '<td><span class="unit">'+basis+'</span></td>'+
+      '<td class="num" data-cell="mo"></td>'+
+      '<td class="num" data-cell="pd"></td>'+
+      '<td><span class="tag '+r.conf+'">'+CONF_LABEL[r.conf]+'</span></td>';
+    tb.appendChild(tr);
+  });
+
+  tb.addEventListener("change", function(e){
+    var t=e.target;
+    if(t.hasAttribute("data-tog")){ state.on[t.getAttribute("data-tog")] = t.checked; render(); save(); }
+  });
+  tb.addEventListener("input", function(e){
+    var t=e.target;
+    if(t.hasAttribute("data-rate")){
+      var v=parseFloat(t.value);
+      state.rates[t.getAttribute("data-rate")] = isNaN(v)?0:v;
+      render(); save();
+    }
+  });
+}
+
+/* ---------- payroll ---------- */
+function buildPayroll(){
+  var host=$("payrollRows");
+  host.innerHTML="";
+  state.payroll.forEach(function(p,i){
+    var d=document.createElement("div");
+    d.className="prow";
+    d.innerHTML =
+      '<input class="role" type="text" value="'+String(p.role).replace(/"/g,"&quot;")+'" data-p="role" data-i="'+i+'" aria-label="Role">'+
+      '<input type="number" min="0" step="1" value="'+p.count+'" data-p="count" data-i="'+i+'" aria-label="Count">'+
+      '<input type="number" min="0" step="1000" value="'+p.salary+'" data-p="salary" data-i="'+i+'" aria-label="Salary">'+
+      '<input type="number" min="0" step="1" value="'+p.burden+'" data-p="burden" data-i="'+i+'" aria-label="Burden percent">'+
+      '<button class="xbtn" type="button" data-del="'+i+'" aria-label="Remove '+p.role+'">×</button>';
+    host.appendChild(d);
+  });
+}
+function wirePayroll(){
+  var host=$("payrollRows");
+  host.addEventListener("input", function(e){
+    var t=e.target;
+    if(!t.hasAttribute("data-p")) return;
+    var i=+t.getAttribute("data-i"), f=t.getAttribute("data-p");
+    state.payroll[i][f] = f==="role" ? t.value : (parseFloat(t.value)||0);
+    render(); save();
+  });
+  host.addEventListener("click", function(e){
+    var t=e.target;
+    if(t.hasAttribute("data-del")){
+      state.payroll.splice(+t.getAttribute("data-del"),1);
+      if(!state.payroll.length) state.payroll.push({role:"New role",count:1,salary:55000,burden:28});
+      buildPayroll(); render(); save();
+    }
+  });
+  $("addRole").addEventListener("click", function(){
+    state.payroll.push({role:"New role", count:1, salary:55000, burden:28});
+    buildPayroll(); render(); save();
+  });
+}
+
+/* ---------- chart ---------- */
+function drawChart(rowsData){
+  var W=480,H=262, padL=46,padR=14,padT=26,padB=36;
+  var pw=W-padL-padR, ph=H-padT-padB;
+  var max=0;
+  rowsData.forEach(function(d){ max=Math.max(max, d.sw+d.lb); });
+  max = Math.max(max, 1);
+  var top = Math.ceil(max/10)*10;
+  var y=function(v){ return padT+ph-(v/top)*ph; };
+  var slot=pw/rowsData.length, bw=Math.min(58, slot*0.5);
+  var s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="All-in cost per door at 300, 500, 700 and 1,000 doors, split between software and payroll" style="display:block">';
+  [0,top/2,top].forEach(function(v){
+    s+='<line x1="'+padL+'" y1="'+y(v).toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y(v).toFixed(1)+'" stroke="var(--line)" stroke-width="1"/>';
+    s+='<text x="'+(padL-8)+'" y="'+(y(v)+4).toFixed(1)+'" text-anchor="end" fill="var(--ink-3)" font-family="IBM Plex Mono, monospace" font-size="10">$'+v.toFixed(0)+'</text>';
+  });
+  rowsData.forEach(function(d,i){
+    var cx=padL+slot*i+slot/2, x=cx-bw/2, tot=d.sw+d.lb;
+    var hLb=(d.lb/top)*ph, hSw=(d.sw/top)*ph;
+    s+='<rect x="'+x.toFixed(1)+'" y="'+y(d.lb).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,hLb).toFixed(1)+'" fill="var(--gold)"/>';
+    s+='<rect x="'+x.toFixed(1)+'" y="'+y(tot).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,hSw).toFixed(1)+'" fill="var(--accent)"/>';
+    s+='<text x="'+cx.toFixed(1)+'" y="'+(y(tot)-7).toFixed(1)+'" text-anchor="middle" fill="var(--ink)" font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="500">$'+tot.toFixed(2)+'</text>';
+    s+='<text x="'+cx.toFixed(1)+'" y="'+(padT+ph+16)+'" text-anchor="middle" fill="var(--ink-2)" font-family="IBM Plex Mono, monospace" font-size="11">'+d.doors.toLocaleString("en-US")+'</text>';
+    s+='<text x="'+cx.toFixed(1)+'" y="'+(padT+ph+29)+'" text-anchor="middle" fill="var(--ink-3)" font-family="IBM Plex Mono, monospace" font-size="9.5">'+d.staff+' staff</text>';
+  });
+  s+='</svg>';
+  s+='<div class="legend" style="margin:14px 0 0"><span><i class="sw" style="background:var(--accent)"></i>Software / door</span><span><i class="sw" style="background:var(--gold)"></i>Payroll / door</span><span>Doors along the bottom</span></div>';
+  $("chart").innerHTML=s;
+}
+
+/* ---------- render ---------- */
+function render(){
+  var doors=Math.max(1, state.doors), seats=Math.max(1, state.seats);
+  $("doors").value=state.doors; $("seats").value=state.seats;
+  $("fee").value=state.fee;     $("dpe").value=state.dpe;
+
+  var tabs=$("scenarios").children;
+  for(var i=0;i<tabs.length;i++) tabs[i].setAttribute("aria-pressed", i===state.scenario?"true":"false");
+  var dp=$("doorPresets").children;
+  for(var j=0;j<dp.length;j++) dp[j].setAttribute("aria-pressed", DOOR_STEPS[j]===state.doors?"true":"false");
+
+  var swTotal=0;
+  ROWS.forEach(function(r){
+    var tr=document.querySelector('[data-row="'+r.id+'"]');
+    var box=tr.querySelector("[data-tog]"), ri=tr.querySelector("[data-rate]");
+    var active=!!state.on[r.id];
+    box.checked=active;
+    if(document.activeElement!==ri) ri.value=rateOf(r);
+    tr.className = active ? "" : "off";
+    var c=rowCost(r, doors, seats);
+    var atMin = (minOf(r)>0) && (c<=minOf(r)+0.001);
+    tr.querySelector('[data-cell="mo"]').innerHTML = active
+      ? money(c) + (atMin ? '<span class="minflag">at '+money(minOf(r))+' min</span>' : '')
+      : '<span style="color:var(--ink-3)">—</span>';
+    tr.querySelector('[data-cell="pd"]').innerHTML = active ? money2(c/doors) : '<span style="color:var(--ink-3)">—</span>';
+    if(active) swTotal+=c;
+  });
+
+  $("swTotal").textContent=money(swTotal);
+  $("swPerDoor").textContent=money2(swTotal/doors);
+
+  var pay=blendedLoaded();
+  var swPD=swTotal/doors, lbPD=pay.monthly/doors, allPD=swPD+lbPD;
+  var margin=state.fee-allPD;
+
+  var todayOn={}; SCENARIOS[0].on.forEach(function(id){ todayOn[id]=true; });
+  var todayPD=softwareAt(doors,seats,todayOn)/doors;
+  var delta=swPD-todayPD;
+
+  $("results").innerHTML=
+   tile("Software / mo", money(swTotal), "")+
+   tile("Software / door", money2(swPD), (state.scenario===0?"this is the baseline":(delta>=0?"+":"−")+money2(Math.abs(delta))+" vs today"))+
+   tile("Payroll / mo", money(pay.monthly), pay.head+" staff, loaded")+
+   tile("Payroll / door", money2(lbPD), Math.round(doors/Math.max(pay.head,1))+" doors per head")+
+   tile("All-in / door", money2(allPD), "software + payroll", "hero")+
+   tile("Gross margin / door", money2(margin), "at "+money(state.fee)+" fee/door", margin<0?"warn":"");
+
+  var rows=DOOR_STEPS.map(function(d){
+    var sw=softwareAt(d, seats, state.on);
+    var staff=Math.max(1, pay.head, Math.ceil(d/Math.max(1,state.dpe)));
+    var lb=staff*pay.avgMonthly;
+    return {doors:d, sw:sw/d, lb:lb/d, swAbs:sw, lbAbs:lb, staff:staff};
+  });
+
+  var mb=$("matrixBody"); mb.innerHTML="";
+  rows.forEach(function(r,k){
+    var all=r.sw+r.lb, stepped = k>0 && r.staff>rows[k-1].staff;
+    var tr=document.createElement("tr");
+    tr.innerHTML =
+      '<td class="num" style="font-family:var(--mono);font-weight:600">'+r.doors.toLocaleString("en-US")+'</td>'+
+      '<td class="num">'+money(r.swAbs)+'</td>'+
+      '<td class="num">'+money2(r.sw)+'</td>'+
+      '<td class="num">'+r.staff+(stepped?' <span class="step">+'+(r.staff-rows[k-1].staff)+'</span>':'')+'</td>'+
+      '<td class="num">'+money(r.lbAbs)+'</td>'+
+      '<td class="num">'+money2(r.lb)+'</td>'+
+      '<td class="num" style="font-weight:600">'+money2(all)+'</td>'+
+      '<td class="num" style="color:'+((state.fee-all)<0?"var(--clay)":"var(--accent-ink)")+'">'+money2(state.fee-all)+'</td>';
+    mb.appendChild(tr);
+  });
+
+  drawChart(rows);
+}
+function tile(label, val, note, cls){
+  return '<div class="res '+(cls||"")+'"><span class="rl">'+label+'</span><span class="rv">'+val+'</span><span class="rn">'+(note||"")+'</span></div>';
+}
+
+/* ---------- boot ---------- */
+buildScenarios();
+buildDoorPresets();
+buildLedger();
+var restored=load();
+if(!restored || !Object.keys(state.on).length) applyScenario(1);
+buildPayroll();
+wirePayroll();
+["doors","seats","fee","dpe"].forEach(function(id){
+  $(id).addEventListener("input", function(){
+    var v=parseFloat(this.value);
+    state[id]= isNaN(v)?0:v;
+    render(); save();
+  });
+});
+render();
+})();
+</script>
