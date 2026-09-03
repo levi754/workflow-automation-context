@@ -1,0 +1,554 @@
+<title>Building Cadence</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root{
+  --ink:#12181B; --ink-2:#4A585E; --ink-3:#7C8A90;
+  --ground:#EDF0EF; --surface:#FFFFFF; --surface-2:#F5F7F6; --surface-3:#E4E9E7;
+  --line:#D6DCDA; --line-2:#C2CBC8;
+  --accent:#12655C; --accent-soft:#DCEAE7; --accent-ink:#0B4B44;
+  --gold:#8A6E12; --gold-soft:#F0E9CF;
+  --clay:#A8442A; --clay-soft:#F6E2DB;
+  --shadow:0 1px 2px rgba(18,24,27,.06), 0 8px 24px -12px rgba(18,24,27,.14);
+  --display:"Archivo",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#E8EDEB; --ink-2:#A2B0B4; --ink-3:#76868B;
+    --ground:#0F1516; --surface:#18201F; --surface-2:#1D2625; --surface-3:#242E2C;
+    --line:#2C3735; --line-2:#3A4644;
+    --accent:#4FBFAE; --accent-soft:#16332F; --accent-ink:#8FD8CB;
+    --gold:#C9A53C; --gold-soft:#332B12;
+    --clay:#E08466; --clay-soft:#3A211A;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E8EDEB; --ink-2:#A2B0B4; --ink-3:#76868B;
+  --ground:#0F1516; --surface:#18201F; --surface-2:#1D2625; --surface-3:#242E2C;
+  --line:#2C3735; --line-2:#3A4644;
+  --accent:#4FBFAE; --accent-soft:#16332F; --accent-ink:#8FD8CB;
+  --gold:#C9A53C; --gold-soft:#332B12;
+  --clay:#E08466; --clay-soft:#3A211A;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{background:var(--ground); color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased;}
+.wrap{max-width:1140px; margin:0 auto; padding:0 24px 88px;}
+h1,h2,h3,h4,.eyebrow,th,button,input,select,label,.mono{font-family:var(--display);}
+h1,h2,h3,h4{text-wrap:balance; margin:0; line-height:1.15; letter-spacing:-.015em;}
+.mono,td.num,th.num,.fig{font-family:var(--mono); font-variant-numeric:tabular-nums;}
+a{color:var(--accent-ink); text-decoration:underline; text-underline-offset:2px; text-decoration-thickness:1px;}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:2px;}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important;}}
+
+/* ---------- masthead ---------- */
+.mast{padding:52px 0 30px; border-bottom:2px solid var(--ink); display:flex; flex-direction:column; gap:18px;}
+.eyebrow{font-size:11.5px; font-weight:600; letter-spacing:.13em; text-transform:uppercase; color:var(--accent-ink);}
+.mast h1{font-size:clamp(38px,6.4vw,62px); font-weight:700;}
+.mast .sub{font-size:19px; color:var(--ink-2); max-width:62ch; margin:0;}
+.mast .meta{display:flex; flex-wrap:wrap; gap:8px 22px; font-family:var(--mono); font-size:12px; color:var(--ink-3);}
+
+/* ---------- generic section ---------- */
+section{padding-top:52px;}
+.shead{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; border-bottom:1px solid var(--line-2); padding-bottom:10px; margin-bottom:26px;}
+.shead h2{font-size:26px; font-weight:600;}
+.shead .note{font-family:var(--mono); font-size:12px; color:var(--ink-3); margin-left:auto;}
+.prose{max-width:66ch;}
+.prose p{margin:0 0 15px;}
+.prose h3{font-size:19px; font-weight:600; margin:30px 0 9px;}
+.prose ul{margin:0 0 15px; padding-left:20px;}
+.prose li{margin-bottom:7px;}
+.prose strong{font-weight:600;}
+.prose code{font-family:var(--mono); font-size:.87em; background:var(--surface-3); padding:1px 5px; border-radius:3px;}
+
+/* ---------- instrument panel ---------- */
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:6px; box-shadow:var(--shadow); overflow:hidden;}
+.controls{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:0; border-bottom:1px solid var(--line); background:var(--surface-2);}
+.ctl{padding:14px 18px; border-right:1px solid var(--line); display:flex; flex-direction:column; gap:7px;}
+.ctl:last-child{border-right:none;}
+.ctl > label{font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);}
+.ctl input[type=number], .ctl select{font-family:var(--mono); font-size:16px; font-weight:500; background:var(--surface); color:var(--ink); border:1px solid var(--line-2); border-radius:4px; padding:6px 8px; width:100%;}
+.presets{display:flex; gap:5px; flex-wrap:wrap;}
+.presets button{font-family:var(--mono); font-size:12.5px; padding:4px 9px; border:1px solid var(--line-2); background:var(--surface); color:var(--ink-2); border-radius:3px; cursor:pointer;}
+.presets button:hover{border-color:var(--accent); color:var(--accent-ink);}
+.presets button[aria-pressed=true]{background:var(--accent); border-color:var(--accent); color:var(--surface);}
+:root[data-theme="dark"] .presets button[aria-pressed=true], :root:not([data-theme="light"]) .presets button[aria-pressed=true]{color:var(--ground);}
+
+.scenarios{display:flex; flex-wrap:wrap; gap:0; border-bottom:1px solid var(--line);}
+.scenarios button{flex:1 1 190px; text-align:left; padding:13px 18px; background:var(--surface); border:none; border-right:1px solid var(--line); border-bottom:3px solid transparent; cursor:pointer; color:var(--ink-2); font-family:var(--display); display:flex; flex-direction:column; gap:3px;}
+.scenarios button:last-child{border-right:none;}
+.scenarios button .sc-k{font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);}
+.scenarios button .sc-n{font-size:14.5px; font-weight:600; color:var(--ink);}
+.scenarios button:hover{background:var(--surface-2);}
+.scenarios button[aria-pressed=true]{background:var(--accent-soft); border-bottom-color:var(--accent);}
+.scenarios button[aria-pressed=true] .sc-k{color:var(--accent-ink);}
+
+/* ---------- ledger table ---------- */
+.tscroll{overflow-x:auto;}
+table{width:100%; border-collapse:collapse; font-size:14px;}
+thead th{font-size:10.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); text-align:left; padding:11px 12px; border-bottom:1px solid var(--line-2); white-space:nowrap; background:var(--surface-2);}
+tbody td{padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:middle;}
+th.num,td.num{text-align:right;}
+tbody tr.off{color:var(--ink-3);}
+tbody tr.off .tname{text-decoration:line-through; text-decoration-color:var(--line-2);}
+.catrow td{background:var(--surface-3); font-family:var(--display); font-size:10.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-2); padding:7px 12px;}
+.tname{font-family:var(--display); font-weight:500; font-size:14px; color:inherit;}
+.tsub{font-family:var(--body); font-size:12.5px; color:var(--ink-3); line-height:1.4; margin-top:2px; max-width:46ch;}
+.rate-in{font-family:var(--mono); font-variant-numeric:tabular-nums; width:76px; text-align:right; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:3px; padding:3px 6px; font-size:13px;}
+tbody tr.off .rate-in{opacity:.5;}
+input[type=checkbox]{width:16px; height:16px; accent-color:var(--accent); cursor:pointer;}
+.unit{font-family:var(--mono); font-size:11px; color:var(--ink-3); white-space:nowrap;}
+.tag{display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; text-transform:uppercase; padding:2px 5px; border-radius:3px; white-space:nowrap; border:1px solid;}
+.tag.pub{color:var(--accent-ink); border-color:var(--accent); background:var(--accent-soft);}
+.tag.rep{color:var(--gold); border-color:var(--gold); background:var(--gold-soft);}
+.tag.quo{color:var(--clay); border-color:var(--clay); background:var(--clay-soft);}
+.minflag{font-family:var(--mono); font-size:10px; color:var(--gold); display:block; margin-top:1px;}
+tfoot td{padding:12px; border-top:2px solid var(--ink); font-family:var(--mono); font-weight:600; font-size:15px;}
+
+/* ---------- results strip ---------- */
+.results{display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); border-top:1px solid var(--line); background:var(--surface-2);}
+.res{padding:16px 18px; border-right:1px solid var(--line); display:flex; flex-direction:column; gap:4px;}
+.res:last-child{border-right:none;}
+.res .rl{font-size:10.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-family:var(--display);}
+.res .rv{font-family:var(--mono); font-variant-numeric:tabular-nums; font-size:25px; font-weight:500; letter-spacing:-.02em; line-height:1.1;}
+.res .rn{font-family:var(--body); font-size:12px; color:var(--ink-3);}
+.res.hero .rv{color:var(--accent-ink); font-size:31px; font-weight:600;}
+.res.warn .rv{color:var(--clay);}
+
+/* ---------- payroll ---------- */
+.payroll{margin-top:12px;}
+.prow{display:grid; grid-template-columns:1.6fr .5fr .9fr .6fr auto; gap:8px; align-items:center; padding:7px 0; border-bottom:1px solid var(--line);}
+.prow input{font-family:var(--mono); font-size:13.5px; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:3px; padding:5px 7px; width:100%; font-variant-numeric:tabular-nums;}
+.prow input.role{font-family:var(--display); text-align:left;}
+.prow .hdr{font-size:10.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-family:var(--display);}
+.prow.head{border-bottom:1px solid var(--line-2); padding-bottom:6px;}
+.xbtn{background:none; border:1px solid var(--line-2); color:var(--ink-3); border-radius:3px; width:26px; height:26px; cursor:pointer; font-family:var(--mono); line-height:1;}
+.xbtn:hover{border-color:var(--clay); color:var(--clay);}
+.addbtn{margin-top:12px; font-family:var(--display); font-size:13px; font-weight:500; padding:7px 14px; border:1px dashed var(--line-2); background:none; color:var(--ink-2); border-radius:4px; cursor:pointer;}
+.addbtn:hover{border-color:var(--accent); color:var(--accent-ink);}
+
+/* ---------- misc blocks ---------- */
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:22px;}
+.callout{border-left:3px solid var(--accent); background:var(--surface); padding:16px 20px; border-radius:0 5px 5px 0;}
+.callout.risk{border-left-color:var(--clay);}
+.callout h4{font-size:15px; font-weight:600; margin-bottom:6px;}
+.callout p{margin:0 0 9px; font-size:15px;}
+.callout p:last-child{margin-bottom:0;}
+.callout ul{margin:0; padding-left:19px; font-size:15px;}
+.callout li{margin-bottom:5px;}
+.legend{display:flex; gap:16px; flex-wrap:wrap; font-family:var(--mono); font-size:11.5px; color:var(--ink-3); padding:11px 14px; background:var(--surface-2); border:1px solid var(--line); border-radius:5px; margin-bottom:18px;}
+.legend span{display:flex; align-items:center; gap:6px;}
+.sw{width:11px; height:11px; border-radius:2px; display:inline-block;}
+.chartbox{background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:20px; box-shadow:var(--shadow);}
+.matrix td.num,.matrix th.num{font-family:var(--mono); font-variant-numeric:tabular-nums;}
+.matrix tbody tr:hover{background:var(--surface-2);}
+.matrix .step{color:var(--clay); font-family:var(--mono); font-size:11px;}
+.yes{color:var(--accent-ink); font-family:var(--mono); font-weight:600;}
+.no{color:var(--ink-3); font-family:var(--mono);}
+.part{color:var(--gold); font-family:var(--mono); font-size:12px;}
+.phase{display:grid; grid-template-columns:auto 1fr; gap:0 20px; align-items:start;}
+.phase + .phase{margin-top:0;}
+.pnum{font-family:var(--mono); font-size:12px; font-weight:600; color:var(--accent-ink); padding-top:4px; border-top:2px solid var(--accent); grid-column:1; white-space:nowrap;}
+.pbody{grid-column:2; border-top:1px solid var(--line); padding:14px 0 22px;}
+.pbody h4{font-size:17px; font-weight:600; margin-bottom:4px;}
+.pbody .when{font-family:var(--mono); font-size:11.5px; color:var(--ink-3); margin-bottom:8px;}
+.pbody p{margin:0 0 8px; font-size:15px;}
+.pbody ul{margin:0; padding-left:19px; font-size:15px;}
+.pbody li{margin-bottom:5px;}
+footer{margin-top:56px; padding-top:22px; border-top:1px solid var(--line-2); font-family:var(--mono); font-size:11.5px; color:var(--ink-3); line-height:1.7;}
+footer a{color:var(--ink-2);}
+@media (max-width:640px){
+  body{font-size:16px;}
+  .prow{grid-template-columns:1fr 1fr; gap:6px;}
+  .prow .hdr{display:none;}
+  .phase{grid-template-columns:1fr; gap:0;}
+  .pnum{grid-column:1;} .pbody{grid-column:1;}
+}
+</style>
+<style>
+.cal{display:grid; grid-template-columns:repeat(12,1fr); gap:3px; margin-top:6px;}
+.cal .m{background:var(--surface-2); border:1px solid var(--line); border-radius:3px; padding:6px 3px 8px; text-align:center; min-height:74px;}
+.cal .mn{font-family:var(--mono); font-size:9.5px; color:var(--ink-3); letter-spacing:.04em;}
+.cal .dot{display:block; width:100%; margin-top:4px; height:6px; border-radius:2px;}
+.cal .lbl{font-family:var(--body); font-size:9.5px; line-height:1.25; color:var(--ink-2); margin-top:3px; display:block;}
+.freq{display:inline-block; font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.05em; padding:2px 6px; border-radius:3px; background:var(--accent-soft); color:var(--accent-ink); white-space:nowrap;}
+.freq.wk{background:var(--clay-soft); color:var(--clay);}
+.freq.yr{background:var(--gold-soft); color:var(--gold);}
+.verdict{font-family:var(--display); font-size:13px; font-weight:600;}
+.v-buy{color:var(--accent-ink);} .v-later{color:var(--gold);} .v-skip{color:var(--ink-3);}
+.status{font-family:var(--mono); font-size:11px; white-space:nowrap; font-weight:600;}
+.s-done{color:var(--accent-ink);} .s-part{color:var(--gold);} .s-none{color:var(--clay);}
+.big{font-family:var(--mono); font-size:31px; font-weight:600; color:var(--accent-ink); letter-spacing:-.02em;}
+.stack{display:grid; gap:0; border:1px solid var(--line); border-radius:6px; overflow:hidden; background:var(--surface); box-shadow:var(--shadow);}
+.srow{display:grid; grid-template-columns:auto 1fr auto; gap:16px; align-items:center; padding:15px 18px; border-bottom:1px solid var(--line);}
+.srow:last-child{border-bottom:none;}
+.srow.total{background:var(--surface-2); border-top:2px solid var(--ink);}
+.sord{font-family:var(--mono); font-size:11px; font-weight:600; color:var(--accent-ink); border:1px solid var(--accent); border-radius:3px; padding:3px 7px; white-space:nowrap;}
+.sord.free{color:var(--gold); border-color:var(--gold);}
+.stitle{font-family:var(--display); font-size:15px; font-weight:600;}
+.sdesc{font-size:13.5px; color:var(--ink-2); margin-top:2px;}
+.scost{font-family:var(--mono); font-variant-numeric:tabular-nums; font-size:15px; font-weight:500; text-align:right; white-space:nowrap;}
+@media (max-width:760px){ .cal{grid-template-columns:repeat(4,1fr);} .srow{grid-template-columns:auto 1fr; } .scost{grid-column:2; text-align:left;} }
+</style>
+<div class="wrap">
+
+<header class="mast">
+  <div class="eyebrow">Companion to Cost Per Door &middot; September 2026</div>
+  <h1>Building Cadence</h1>
+  <p class="sub">Every repeating obligation in the portfolio — weekly filters through five-year facade cycles — and the smallest, cheapest stack that can fire them per building and per unit. Plus a deep dive on the AI vendors and an honest ledger of the ambitions still sitting unfinished.</p>
+  <div class="meta">
+    <span>Recurring ops &middot; building intelligence &middot; AI vendor landscape &middot; ambition ledger</span>
+  </div>
+</header>
+
+<section id="blocker">
+  <div class="shead"><h2>The one thing blocking all of it</h2></div>
+  <div class="prose">
+    <p>You asked for reminders that go only to the units that have hose bibs, and only to the buildings that have drains. That sentence contains the whole problem: <strong>no reminder tool can target a hose bib until some field somewhere says which units have one.</strong> This is a data problem wearing a software problem's clothing, and buying another tool will not solve it.</p>
+    <p>The good news is genuinely good, and it is the most useful thing I found all session:</p>
+    <div class="callout" style="margin:18px 0">
+      <h4>You already own the engine. It is switched off.</h4>
+      <p>Rent Manager has <strong>User Defined Fields</strong> — arbitrary custom fields you can attach to properties and units to track anything the software doesn't already hold. It also has <strong>Task Automation</strong>, which will "post recurring service issues <em>without any user intervention</em>" once posting schedules are in place. And <strong>rmAppSuite Pro</strong> can surface selected user-defined fields to maintenance techs in the field.</p>
+      <p style="margin-bottom:0">Those three features are, together, exactly the system you described wanting. The asset registry is the UDFs. The weekly, quarterly, biannual and annual triggers are Task Automation. The delivery to the person holding a screwdriver is rmAppSuite Pro. <strong>Incremental cost: $0.</strong></p>
+    </div>
+    <p>So the build order is: <strong>registry first, triggers second, tools last.</strong> Spend the next two weeks populating fields, not evaluating vendors. Every recurring ambition on your list becomes mechanical the moment the registry exists, and stays impossible until it does.</p>
+  </div>
+</section>
+
+<section id="cadence">
+  <div class="shead"><h2>The cadence table</h2><div class="note">Every item you named, plus the ones NYC will fine you for missing</div></div>
+  <p class="prose" style="margin-bottom:20px">This is a build spec, not a list. The <em>Needs field</em> column is the part that has to exist before the trigger can be scoped — build those fields and the rest is configuration.</p>
+  <div class="panel tscroll">
+    <table class="matrix">
+      <thead><tr>
+        <th>Recurring item</th><th>Frequency</th><th>Scope</th><th>Needs field</th><th>Fires to</th><th>Where it should live</th>
+      </tr></thead>
+      <tbody>
+        <tr><td><strong>HVAC filter clean/swap</strong></td><td><span class="freq wk">Weekly</span></td><td>Unit</td><td><code>hvac_filter_size</code>, <code>hvac_unit_count</code></td><td>Resident</td><td>Rent Manager Task Automation → mass comms</td></tr>
+        <tr><td><strong>HVAC professional clean</strong></td><td><span class="freq">Quarterly</span></td><td>Building</td><td><code>hvac_system_type</code>, <code>hvac_vendor</code></td><td>Vendor + PM</td><td>Rent Manager recurring service issue</td></tr>
+        <tr><td><strong>HVAC deep clean / duct</strong></td><td><span class="freq yr">Annual</span></td><td>Building</td><td><code>hvac_system_type</code>, last-service date</td><td>Vendor + PM</td><td>Rent Manager recurring service issue</td></tr>
+        <tr><td><strong>Hose bib shutoff + drain down</strong></td><td><span class="freq">Oct 1–15</span></td><td>Unit / building</td><td><code>hose_bib_count</code>, <code>hose_bib_location</code></td><td>Super + PM</td><td>Rent Manager, scoped by UDF filter</td></tr>
+        <tr><td><strong>Hose bib turn-on + leak check</strong></td><td><span class="freq">Apr 1–15</span></td><td>Unit / building</td><td>same field, inverse season</td><td>Super + PM</td><td>Rent Manager, scoped by UDF filter</td></tr>
+        <tr><td><strong>Main / floor drain jetting</strong></td><td><span class="freq">Semi-annual</span></td><td>Building</td><td><code>drain_type</code>, <code>drain_count</code>, <code>has_commercial_tenant</code></td><td>Vendor</td><td>Rent Manager recurring service issue</td></tr>
+        <tr><td><strong>Roof drain / leader clearing</strong></td><td><span class="freq">Mar &amp; Oct</span></td><td>Building</td><td><code>roof_drain_count</code>, <code>roof_access</code></td><td>Super + vendor</td><td>Rent Manager, seasonal schedule</td></tr>
+        <tr><td><strong>Heat season start check</strong></td><td><span class="freq">Sep (pre-Oct 1)</span></td><td>Building</td><td><code>boiler_type</code>, <code>boiler_location</code></td><td>Super + vendor</td><td>Rent Manager + compliance tool</td></tr>
+        <tr><td><strong>Monthly newsletter</strong></td><td><span class="freq">Monthly</span></td><td>Portfolio</td><td>resident contact preferences</td><td>All residents</td><td>Rent Manager mass communication</td></tr>
+        <tr class="catrow"><td colspan="6">NYC statutory — applicability and exact dates vary by building; compute per building, do not trust a generic list</td></tr>
+        <tr><td>HPD property registration</td><td><span class="freq yr">Annual</span></td><td>Building</td><td>HPD reg. number, managing agent</td><td>PM / counsel</td><td>Compliance tool</td></tr>
+        <tr><td>Boiler inspection &amp; filing</td><td><span class="freq yr">Annual</span></td><td>Building</td><td><code>boiler_type</code>, pressure class</td><td>Vendor + filing agent</td><td>Compliance tool</td></tr>
+        <tr><td>Elevator inspection &amp; tests</td><td><span class="freq yr">Annual</span></td><td>Building</td><td><code>has_elevator</code>, device IDs</td><td>Vendor + filing agent</td><td>Compliance tool</td></tr>
+        <tr><td>Backflow preventer test</td><td><span class="freq yr">Annual</span></td><td>Building</td><td><code>has_backflow_device</code></td><td>Vendor</td><td>Compliance tool</td></tr>
+        <tr><td>Window guard notice</td><td><span class="freq yr">Annual</span></td><td>Unit</td><td>child-occupancy flag</td><td>Residents</td><td>Rent Manager mass comms</td></tr>
+        <tr><td>Lead paint / LL31 inspection</td><td><span class="freq yr">Annual</span></td><td>Unit</td><td><code>built_pre_1960</code>, child-occupancy</td><td>Vendor + PM</td><td>Compliance tool + Rent Manager</td></tr>
+        <tr><td>LL97 emissions report</td><td><span class="freq yr">Annual</span></td><td>Building</td><td>sq ft, occupancy group</td><td>Consultant</td><td>Compliance tool</td></tr>
+        <tr><td>LL152 gas piping inspection</td><td><span class="freq">4-year cycle</span></td><td>Building</td><td>community district, gas service</td><td>Licensed plumber</td><td>Compliance tool</td></tr>
+        <tr><td>FISP / LL11 facade</td><td><span class="freq">5-year cycle</span></td><td>Building</td><td><code>stories</code> (6+), cycle sub-cycle</td><td>Engineer</td><td>Compliance tool</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout risk" style="margin-top:18px">
+    <h4>Two cautions on this table</h4>
+    <p><strong>Weekly filter reminders will burn out.</strong> You asked for weekly and it is specced weekly, but manufacturers generally call for monthly rinsing on washable filters and one to three months on disposables. A weekly resident-facing message is roughly 52 touches a year for a task that needs twelve, and the predictable result is that residents mute the channel — which then also mutes the messages that matter. The version I would ship: <strong>weekly for the first month after move-in</strong> while the habit forms, then monthly thereafter, with the weekly cadence reserved for units that have had a documented coil freeze or airflow complaint. Your call — the field <code>filter_reminder_cadence</code> lets you run both and compare.</p>
+    <p style="margin-bottom:0"><strong>Do not take the statutory dates from this page.</strong> Applicability turns on square footage, occupancy type, building age, unit count, stories, mechanical systems and community district. A generic calendar is how buildings get fined. Compute the per-building version with the tool in the next section, and confirm anything with a penalty attached with counsel — missing LL152 alone runs $5,000 per building per BIN. Also worth checking today: HPD registration renews annually, and the deadline is early September.</p>
+  </div>
+</section>
+
+<section id="registry">
+  <div class="shead"><h2>The asset registry</h2><div class="note">Build these fields in Rent Manager first — everything else depends on them</div></div>
+  <p class="prose" style="margin-bottom:20px">Two weeks of data entry buys you every automation on the page. Walk one building, fill the fields, template the rest. Put building-level fields on the property record and unit-level fields on the unit record, so a trigger can filter on them.</p>
+  <div class="panel tscroll">
+    <table class="matrix">
+      <thead><tr><th>Field</th><th>Level</th><th>Type</th><th>Why it exists</th></tr></thead>
+      <tbody>
+        <tr><td><code>hose_bib_count</code></td><td>Unit</td><td>Number</td><td>Scopes the biannual shutoff/turn-on to only the units that have one — your exact ask</td></tr>
+        <tr><td><code>hose_bib_location</code></td><td>Unit</td><td>Text</td><td>So the super isn't hunting; goes to the tech via rmAppSuite Pro</td></tr>
+        <tr><td><code>hvac_filter_size</code></td><td>Unit</td><td>Text</td><td>Turns "change your filter" into "buy a 16×25×1" — and lets you bulk-purchase</td></tr>
+        <tr><td><code>hvac_unit_count</code></td><td>Unit</td><td>Number</td><td>Multi-unit apartments need multiple filters</td></tr>
+        <tr><td><code>hvac_system_type</code></td><td>Building</td><td>List</td><td>PTAC / split / central / mini-split — drives which vendor and which quarterly scope</td></tr>
+        <tr><td><code>drain_type</code></td><td>Building</td><td>List</td><td>Floor / main / area / roof — scopes drain reminders to buildings that have them</td></tr>
+        <tr><td><code>drain_count</code></td><td>Building</td><td>Number</td><td>Lets the vendor quote before arriving</td></tr>
+        <tr><td><code>roof_drain_count</code></td><td>Building</td><td>Number</td><td>Separate cadence — leaf drop and spring rain, not the same as interior drains</td></tr>
+        <tr><td><code>has_commercial_tenant</code></td><td>Building</td><td>Yes/No</td><td>Grease means semi-annual jetting instead of annual</td></tr>
+        <tr><td><code>boiler_type</code> / <code>boiler_location</code></td><td>Building</td><td>List / Text</td><td>Heat-season check, annual inspection, and the 2am emergency call</td></tr>
+        <tr><td><code>water_main_shutoff</code></td><td>Building</td><td>Text</td><td>The single most valuable field in an emergency</td></tr>
+        <tr><td><code>gas_shutoff</code></td><td>Building</td><td>Text</td><td>Same</td></tr>
+        <tr><td><code>access_notes</code> / <code>lockbox_code</code></td><td>Building</td><td>Text</td><td>Your "building codes and accesses" problem — one field, visible to techs in the field</td></tr>
+        <tr><td><code>super_contact</code></td><td>Building</td><td>Text</td><td>Stops the "who do I call" thread</td></tr>
+        <tr><td><code>roof_access</code></td><td>Building</td><td>Text</td><td>Hatch vs. bulkhead vs. neighbor's fire escape — techs need this before they climb</td></tr>
+        <tr><td><code>built_pre_1960</code></td><td>Building</td><td>Yes/No</td><td>Drives lead paint obligations</td></tr>
+        <tr><td><code>has_elevator</code> / <code>has_backflow_device</code></td><td>Building</td><td>Yes/No</td><td>Scopes the annual statutory inspections</td></tr>
+        <tr><td><code>stories</code> / <code>sq_ft</code> / <code>community_district</code></td><td>Building</td><td>Number / Text</td><td>Determines FISP, LL97 and LL152 applicability — the three expensive ones</td></tr>
+        <tr><td><code>filter_reminder_cadence</code></td><td>Unit</td><td>List</td><td>Weekly / monthly, so you can A/B the fatigue question above</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="prose" style="margin-top:16px; font-size:14px; color:var(--ink-2)">Note the second-order win: fields 12 through 16 are your "obvious breakdown of things people need for buildings." Once <code>water_main_shutoff</code>, <code>access_notes</code>, <code>super_contact</code> and <code>roof_access</code> live on the property record and render in rmAppSuite Pro, the building-information problem is solved as a byproduct of solving the reminder problem — with no new tool and no wiki that goes stale.</p>
+</section>
+
+<section id="year">
+  <div class="shead"><h2>The year at a glance</h2><div class="note">Where the seasonal load actually lands</div></div>
+  <p class="prose" style="margin-bottom:16px">Weekly and monthly items run continuously and aren't shown. What matters here is that your seasonal work clusters hard into two shoulder months — <strong>March/April and September/October</strong> — which is also when leasing turnover peaks in NYC. Plan staffing around those two spikes, not around the annual average.</p>
+  <div class="chartbox">
+    <div class="cal">
+      <div class="m"><span class="mn">JAN</span><span class="dot" style="background:var(--gold)"></span><span class="lbl">Window guard notice</span></div>
+      <div class="m"><span class="mn">FEB</span><span class="dot" style="background:var(--surface-3)"></span><span class="lbl">Quiet</span></div>
+      <div class="m"><span class="mn">MAR</span><span class="dot" style="background:var(--clay)"></span><span class="lbl">Roof drains &middot; Q1 HVAC</span></div>
+      <div class="m"><span class="mn">APR</span><span class="dot" style="background:var(--clay)"></span><span class="lbl">Hose bibs ON &middot; drain jetting</span></div>
+      <div class="m"><span class="mn">MAY</span><span class="dot" style="background:var(--gold)"></span><span class="lbl">LL97 report</span></div>
+      <div class="m"><span class="mn">JUN</span><span class="dot" style="background:var(--accent)"></span><span class="lbl">Q2 HVAC clean</span></div>
+      <div class="m"><span class="mn">JUL</span><span class="dot" style="background:var(--surface-3)"></span><span class="lbl">Quiet</span></div>
+      <div class="m"><span class="mn">AUG</span><span class="dot" style="background:var(--surface-3)"></span><span class="lbl">Quiet</span></div>
+      <div class="m"><span class="mn">SEP</span><span class="dot" style="background:var(--clay)"></span><span class="lbl">HPD reg &middot; heat check &middot; Q3</span></div>
+      <div class="m"><span class="mn">OCT</span><span class="dot" style="background:var(--clay)"></span><span class="lbl">Hose bibs OFF &middot; roof drains</span></div>
+      <div class="m"><span class="mn">NOV</span><span class="dot" style="background:var(--surface-3)"></span><span class="lbl">Quiet</span></div>
+      <div class="m"><span class="mn">DEC</span><span class="dot" style="background:var(--accent)"></span><span class="lbl">Q4 HVAC &middot; annual deep clean</span></div>
+    </div>
+    <div class="legend" style="margin:14px 0 0"><span><i class="sw" style="background:var(--clay)"></i>Heavy — seasonal + statutory stack up</span><span><i class="sw" style="background:var(--accent)"></i>Routine preventive</span><span><i class="sw" style="background:var(--gold)"></i>Statutory filing only</span></div>
+  </div>
+</section>
+
+<section id="vendors">
+  <div class="shead"><h2>The AI vendor deep dive</h2><div class="note">What each one actually does, not what its homepage says</div></div>
+  <p class="prose" style="margin-bottom:20px">You asked what Haven does, whether Vendoroo is redundant, and about "the many others." The short version: <strong>almost all of these are the same product</strong> — an AI that answers the phone, triages a maintenance request, and dispatches a vendor. They differentiate on modality and depth, not category. You need exactly one of them, and the honest ranking depends on whether you stay on Rent Manager.</p>
+  <div class="panel tscroll">
+    <table class="matrix">
+      <thead><tr><th>Vendor</th><th>What it actually does</th><th>Channels</th><th>Rent Manager?</th><th>Price</th><th>Verdict for you</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Vendoroo</strong></td>
+          <td>Reactive maintenance lifecycle: 24/7 triage on your policies → expert review → AI vendor scheduler → job verification. Plus a maintenance knowledge repository.</td>
+          <td>Vendor + resident preferred channels</td>
+          <td class="yes">Native — joined the Rent&nbsp;Manager Integrations Program, Apr&nbsp;2026</td>
+          <td>~$3/door <span class="tag rep">Rep</span></td>
+          <td class="verdict v-buy">Strongest fit if you stay on Rent&nbsp;Manager</td>
+        </tr>
+        <tr>
+          <td><strong>Haven AI</strong></td>
+          <td>Two agents only: <em>Maintenance AI</em> (answers calls, creates work orders, dispatches vendors, triages emergencies, follows up) and <em>Leasing AI</em> (qualifies prospects, books tours, captures Zillow leads). Vendors and collections agents are "coming soon."</td>
+          <td>Voice-first — phone, SMS, email</td>
+          <td class="part">Not listed; AppFolio confirmed via customer</td>
+          <td>$1/door, $298 min <span class="tag rep">Rep</span></td>
+          <td class="verdict v-buy">Cheapest credible entry. Confirm RM integration</td>
+        </tr>
+        <tr>
+          <td><strong>Avery (AveryIQ)</strong></td>
+          <td>AI contact center: answers calls, texts and emails; schedules tours, opens work orders, coordinates vendors. Reports 88% of interactions handled with no human. YC-backed.</td>
+          <td>Phone, SMS, email</td>
+          <td class="no">Not confirmed</td>
+          <td>Quote only <span class="tag quo">Quote</span></td>
+          <td class="verdict v-later">Very likely your "Alvin" — confirm the name first</td>
+        </tr>
+        <tr>
+          <td><strong>Super</strong></td>
+          <td>Voice-first AI receptionist that both answers <em>and places</em> calls; triages maintenance and routes across email, text and phone.</td>
+          <td>Voice-first, omnichannel</td>
+          <td class="no">Not confirmed</td>
+          <td>Quote only <span class="tag quo">Quote</span></td>
+          <td class="verdict v-later">Overlaps Avery almost exactly — pick one</td>
+        </tr>
+        <tr>
+          <td><strong>Zuma (Kelsey)</strong></td>
+          <td>Full resident lifecycle agent: leasing, tours, prospect follow-up, resident Q&amp;A <em>and rent collections</em>, on a human-in-the-loop model. Multifamily-native.</td>
+          <td>Voice, chat, SMS, email</td>
+          <td class="no">Multifamily PMS focus</td>
+          <td>Free pilots offered <span class="tag rep">Rep</span></td>
+          <td class="verdict v-buy">Best collections story, and a free pilot is a free look</td>
+        </tr>
+        <tr>
+          <td><strong>EliseAI</strong></td>
+          <td>The most established: leasing, renewals, maintenance triage and delinquency follow-up in one platform. $2.2B valuation, ~$200M ARR as of mid-2026.</td>
+          <td>Chat, email, SMS, voice</td>
+          <td class="part">Enterprise integrations</td>
+          <td>$3–6/unit, <strong>~$25k/yr min</strong> <span class="tag rep">Rep</span></td>
+          <td class="verdict v-skip">Skip until ~600 doors — $6.94/door at your size</td>
+        </tr>
+        <tr>
+          <td><strong>Property Meld</strong></td>
+          <td>Not a chatbot — maintenance <em>operations</em>: AI repair intake, emergency screening, vendor scheduling, and critically <strong>preventive maintenance scheduling with asset tracking</strong> and service history.</td>
+          <td>Resident + vendor portals</td>
+          <td class="yes">Yes</td>
+          <td>$1.60/door, $160 min <span class="tag rep">Rep</span></td>
+          <td class="verdict v-buy">The only one that serves your recurring ambition</td>
+        </tr>
+        <tr>
+          <td><strong>Conduit</strong></td>
+          <td>Native voice AI trained on property workflows, aimed at high inbound call volume.</td>
+          <td>Voice</td>
+          <td class="no">Not confirmed</td>
+          <td>Quote only <span class="tag quo">Quote</span></td>
+          <td class="verdict v-skip">No differentiation for you</td>
+        </tr>
+        <tr>
+          <td><strong>Colleen AI</strong></td>
+          <td>Was AI collections and delinquency outreach.</td>
+          <td>—</td>
+          <td class="no">—</td>
+          <td>Unavailable</td>
+          <td class="verdict v-skip">Acquired by Entrata Jun 2024, folded into ELI+. Not buyable</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid2" style="margin-top:22px">
+    <div class="callout">
+      <h4>Is Vendoroo redundant?</h4>
+      <p>Against Avery, Haven or Super — <strong>yes, heavily.</strong> All four take an inbound maintenance request, triage it, and dispatch a vendor. Buy two and you are paying twice for one capability and splitting your work-order history across two systems, which is worse than either alone.</p>
+      <p style="margin-bottom:0">Against <strong>Property Meld — no.</strong> Vendoroo is reactive (a request arrives, it handles it); Property Meld also does <em>scheduled</em> preventive maintenance with an asset register. Different halves of the job. Notably Vendoroo's own product pages say nothing about preventive or recurring scheduling — so <strong>Vendoroo will not fire your HVAC filter reminders.</strong> Don't buy it expecting that.</p>
+    </div>
+    <div class="callout risk">
+      <h4>Can "Alvin" migrate your data? Almost certainly not</h4>
+      <p>I found no evidence that any AI agent vendor in this category performs PMS data migration, and it would be a strange thing for a contact-center product to do. Migrating a ledger means moving chart of accounts, historical transactions, security deposits, prepaids, leases, owner statements and tax history with reconciliation at both ends — that is an accounting data project with legal exposure, not a task for a conversational agent.</p>
+      <p style="margin-bottom:0">Migration comes from <strong>the destination vendor's own team.</strong> AppFolio migrates from Rent Manager with dedicated onboarding and asks you to clean data first. If someone tells you an AI will handle it, ask specifically who reconciles the trial balance on the day of cutover, and who is liable if a security deposit lands in the wrong ledger.</p>
+    </div>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="shead"><h2>The fewest tools that cover everything</h2><div class="note">Ordered by dependency, priced at 300 doors</div></div>
+  <p class="prose" style="margin-bottom:20px">You asked for as few tools as possible, as cheaply as possible, covering all the bases. This is that answer. Note that <strong>the first step — the one that delivers every recurring reminder you asked for — costs nothing.</strong></p>
+  <div class="stack">
+    <div class="srow">
+      <span class="sord free">Step 0 &middot; free</span>
+      <div>
+        <div class="stitle">Rent Manager UDFs + Task Automation + rmAppSuite Pro</div>
+        <div class="sdesc">The asset registry, all recurring triggers (HVAC weekly/quarterly/annual, hose bibs, drains, roof drains, heat season), the building-info problem, and the monthly newsletter via mass communication. Software you already pay for.</div>
+      </div>
+      <div class="scost">$0</div>
+    </div>
+    <div class="srow">
+      <span class="sord">Step 1</span>
+      <div>
+        <div class="stitle">RegWatch — NYC compliance &amp; building intelligence</div>
+        <div class="sdesc">Per-building compliance calendar computed from the building's actual characteristics across 250+ government sources (HPD, DOB, DEP, FDNY), tracking 12 recurring obligations with in-app alerts. Solves the statutory half of the cadence table, which you should never hand-maintain.</div>
+      </div>
+      <div class="scost">$100/mo<br><span style="font-size:11px;color:var(--ink-3)">Max, annual · 50 bldgs</span></div>
+    </div>
+    <div class="srow">
+      <span class="sord">Step 2</span>
+      <div>
+        <div class="stitle">LeadSimple Platform — the human-judgment processes</div>
+        <div class="sdesc">Collections, renewals, move-in/move-out, building onboarding — the consistency problem. Also retires rmVoIP, HubSpot and DocuSign. Leases sync continuously and expiring leases auto-trigger a process 90 days out.</div>
+      </div>
+      <div class="scost">$897/mo<br><span style="font-size:11px;color:var(--ink-3)">$2.99/door</span></div>
+    </div>
+    <div class="srow">
+      <span class="sord">Step 3</span>
+      <div>
+        <div class="stitle">One front-door AI — chosen after 90 days of data</div>
+        <div class="sdesc">Vendoroo if you stay on Rent Manager (native integration), Haven if price leads, Zuma if collections is the pain and you take the free pilot. Exactly one.</div>
+      </div>
+      <div class="scost">$300–900/mo<br><span style="font-size:11px;color:var(--ink-3)">$1–3/door</span></div>
+    </div>
+    <div class="srow total">
+      <span class="sord" style="border-color:var(--ink);color:var(--ink)">All in</span>
+      <div>
+        <div class="stitle">Four line items, three of them optional and sequenced</div>
+        <div class="sdesc">Steps 0–2 together: <strong>$997/mo = $3.32 per door</strong>. Everything you described wanting, minus the AI layer you shouldn't buy yet.</div>
+      </div>
+      <div class="scost">$3.32–6.32<br><span style="font-size:11px;color:var(--ink-3)">per door / mo</span></div>
+    </div>
+  </div>
+  <div class="callout risk" style="margin-top:22px">
+    <h4>The architectural split that matters — don't put the filters in LeadSimple</h4>
+    <p>LeadSimple's recurring tasks have a design choice that breaks high-frequency work: <strong>to avoid a backlog, the next recurring task is only created once the current one is marked complete.</strong> Miss a Monday filter task and the series stalls until someone closes it. Across 300 units on a weekly cadence, that is a guaranteed pile-up.</p>
+    <p style="margin-bottom:0">Rent Manager's Task Automation, by contrast, posts recurring service issues <em>without user intervention</em> — it scans the database, finds what's due, and posts it regardless of what anyone completed. So: <strong>high-frequency, mechanical, calendar-driven work goes in Rent Manager. Low-frequency, judgment-heavy, multi-step processes go in LeadSimple.</strong> Filters and hose bibs in one; collections, renewals and onboarding in the other. Getting this backwards is the most likely way this build fails.</p>
+  </div>
+</section>
+
+<section id="ledger">
+  <div class="shead"><h2>Ambition ledger</h2><div class="note">Read from 225 of your own turns in this repo's export, last touched 7 Aug 2025</div></div>
+  <div class="prose" style="margin-bottom:22px">
+    <p>You asked me to read your Claude history the way you'd use NotebookLM — to pull out the ambitions and tell you which ones landed. The export in this repo is one project: the <strong>NYC developer lead-generation system.</strong> Here is what you said you wanted, and where each item actually stands.</p>
+  </div>
+  <div class="panel tscroll">
+    <table class="matrix">
+      <thead><tr><th>What you said you wanted</th><th>Status</th><th>Where it stands</th></tr></thead>
+      <tbody>
+        <tr><td>Supabase database as the foundation</td><td class="status s-done">Done</td><td>Built, then reset to a clean slate in Aug 2025 for a 20-year rebuild</td></tr>
+        <tr><td>HubSpot CRM with custom properties configured</td><td class="status s-done">Done</td><td>Fields created across contacts and companies</td></tr>
+        <tr><td>Identify the six NYC permit/registration APIs</td><td class="status s-done">Done</td><td>All six endpoints identified and tested</td></tr>
+        <tr><td>Cross-reference permits to owners by BIN</td><td class="status s-part">Partial</td><td>Approach settled, but you hit a real wall: DOB permits and DOB NOW use different permit-number types, so only BIN crosses — and filers tend to use one system or the other</td></tr>
+        <tr><td>Flexible lead scoring you can adjust per developer</td><td class="status s-part">Partial</td><td>Framework designed, including manual override to make a self-manager a prospect anyway</td></tr>
+        <tr><td>20-year history, all five boroughs</td><td class="status s-part">Partial</td><td>Strategy decided Aug 2025; loading not completed</td></tr>
+        <tr><td>Detect who manages each building today (self vs. third-party)</td><td class="status s-none">Not built</td><td>"Management pattern analysis" designed; never implemented</td></tr>
+        <tr><td>Contact enrichment — phone, email, office address</td><td class="status s-none">Not built</td><td>Tool chosen (Seamless.ai), integration never wired</td></tr>
+        <tr><td><strong>Daily/weekly API auto-updates on all five sources</strong></td><td class="status s-none">Not built</td><td>You asked for this at least four separate times across the transcript. It is the single most-requested unbuilt item</td></tr>
+        <tr><td>Enter any address → see owner, their whole portfolio, contacts, managers</td><td class="status s-none">Not built</td><td>The core user-facing feature. Never reached</td></tr>
+        <tr><td>Same owner + different management companies = they haven't found the right manager</td><td class="status s-none">Not built</td><td>Genuinely the sharpest commercial idea in the whole transcript, and it was never implemented</td></tr>
+        <tr><td>Buttons: mark self-managed uninterested, enrich via Seamless, star prospects, last-permit field</td><td class="status s-none">Not built</td><td>Specced in detail; you noted you'd build them in Lovable</td></tr>
+        <tr><td>Build the front end in Lovable or v0</td><td class="status s-none">Not started</td><td>Considered repeatedly, never begun</td></tr>
+        <tr><td>Make it "replicable for others as well"</td><td class="status s-none">Not started</td><td>Stated in your second message. Never revisited</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="prose" style="margin-top:26px">
+    <h3>The pattern worth naming</h3>
+    <p>Everything that landed is <strong>infrastructure</strong>. Everything that didn't is <strong>the part that makes money.</strong> The project never got past the data-loading layer: the transcript cycles through full rebuilds, clean-slate SQL, column-mapping failures, files too large, duplicate rows, and "let's recreate everything, please give me step by step." Fourteen months later the database is ready and not one email has been sent by it.</p>
+    <p>That is not a discipline problem, it is a sequencing problem — you chose a project whose first milestone was building a data pipeline from six government APIs before it could produce a single lead. There was no cheap intermediate win to sustain it.</p>
+
+    <h3>Why this matters for the ops project</h3>
+    <p>Your two projects are the same shape: <em>recurring, data-driven actions fired off a registry of buildings.</em> One stalled and one hasn't started. The difference is decisive, and it is the reason to be optimistic:</p>
+    <ul>
+      <li><strong>Lead generation required you to build the building registry from scratch.</strong> That's why it stalled.</li>
+      <li><strong>Operations automation does not — Rent Manager already holds every building, unit and resident.</strong> You are adding fields to existing records, not assembling a database from six APIs.</li>
+    </ul>
+    <p>So the ops work will succeed where lead-gen stalled, and it should go first. Its first milestone is two weeks away and free, which is exactly the property the lead-gen project lacked.</p>
+
+    <div class="callout" style="margin:22px 0">
+      <h4>And the thing you should probably just buy</h4>
+      <p>RegWatch — the compliance tool in Step 1 — aggregates NYC, NJ and CT property records from 250+ government sources, and its Max tier includes a <strong>Prospector lead finder, AI Analyst mode, and CRM/CSV export</strong> alongside the compliance calendar.</p>
+      <p style="margin-bottom:0">That is a meaningful overlap with the pipeline you have been hand-building for fourteen months, at <strong>$50–100/month.</strong> It will not replicate your BIN-level permit cross-referencing or the owner-portfolio graph — and it certainly won't deliver the "same owner, different managers" signal, which remains your original idea and your edge. But before you resume that build, spend $15 on a single one-time report and see how much of your own spec arrives pre-built. If it covers 70% of it, the right move is to buy the 70% and spend your build time only on the differentiated 30%. One tool would then serve both your compliance problem and your sales pipeline — which is as close as this session gets to your "as few tools as possible" goal.</p>
+    </div>
+
+    <h3>What I'd do in the next two weeks</h3>
+    <ul>
+      <li><strong>Days 1–3:</strong> Create the UDFs from the registry table in Rent Manager. This is configuration, not a project.</li>
+      <li><strong>Days 4–10:</strong> Walk two buildings end to end and fill every field, including shutoffs, access codes and roof access. Time it, then extrapolate the rest and template what repeats.</li>
+      <li><strong>Days 8–10:</strong> Configure Task Automation for the four highest-value cadences: hose bib shutoff (Oct is weeks away), roof drains, quarterly HVAC, heat-season check. Not all nineteen — four.</li>
+      <li><strong>Day 11:</strong> Buy one $15 RegWatch report on your largest building. Compare it against your own lead-gen spec and against what you currently track manually.</li>
+      <li><strong>Days 12–14:</strong> Send one monthly newsletter through Rent Manager mass communication. Prove the channel works before designing a content calendar around it.</li>
+    </ul>
+    <p>Note what is absent from that list: no vendor demos, no migration, no AI pilots. Those all belong after the registry exists, because the registry is what makes every one of them evaluable.</p>
+
+    <h3>Open questions I still need answered</h3>
+    <ul>
+      <li><strong>Is "Alvin" actually Avery (averyiq.com)?</strong> Two rounds of searching found no property-management vendor named Alvin. If you have a URL or an email from them, that settles it — and if it's a genuinely new startup, its pricing and integration list are worth pulling before you count on it.</li>
+      <li><strong>How many buildings, not units?</strong> RegWatch tiers on monitored buildings (50 on Max), and your whole compliance cost turns on that count. 300 units across 12 buildings and 300 across 60 are different purchases.</li>
+      <li><strong>Do you have commercial tenants in any building?</strong> It changes drain jetting from annual to semi-annual and pulls in a separate compliance set.</li>
+      <li><strong>Is anyone maintaining the lead-gen pipeline today,</strong> or is it genuinely parked? That decides whether the HubSpot dependency is a live constraint or a free cancellation.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div style="margin-bottom:10px">Sources — verified September 2026. Vendor capability claims are from vendors' own product pages; pricing confidence tags carry over from the Cost Per Door model. Statutory cadences are indicative only: per-building applicability and dates must be computed from building characteristics and confirmed with counsel.</div>
+  <div>
+    <a href="https://www.rentmanager.com/automate-your-operation-with-these-tools/">Rent Manager Task Automation</a> &middot;
+    <a href="https://www.rentmanager.com/software-customization/">Rent Manager User Defined Fields</a> &middot;
+    <a href="https://www.rentmanager.com/maintenance/">Rent Manager maintenance &amp; scheduling</a> &middot;
+    <a href="https://www.rentmanager.com/mass-communication-methods-rent-manager/">Rent Manager mass communication</a> &middot;
+    <a href="https://training.leadsimple.com/en/articles/9420207-new-standalone-and-recurring-tasks">LeadSimple recurring tasks</a> &middot;
+    <a href="https://www.leadsimple.com/property-management/workflow-automation">LeadSimple workflow automation</a> &middot;
+    <a href="https://regwatch.nyc/nyc-compliance-deadlines">RegWatch</a> &middot;
+    <a href="https://regwatch.nyc/pricing">RegWatch pricing</a> &middot;
+    <a href="https://insparisk.com/nyc/compliance-calendar">Insparisk NYC compliance calendar</a> &middot;
+    <a href="https://www.keepmygas.nyc/local-law-152/property-managers-nyc/">Local Law 152 penalties</a> &middot;
+    <a href="https://randpc.com/news/nyc-building-compliance-2026-essential-deadlines-at-a-glance/">NYC 2026 compliance deadlines</a> &middot;
+    <a href="https://www.usehaven.ai/">Haven AI</a> &middot;
+    <a href="https://www.rentmanager.com/integrations/vendoroo/">Vendoroo × Rent Manager</a> &middot;
+    <a href="https://www.businesswire.com/news/home/20260427364445/en/Vendoroo-Joins-the-Rent-Manager-Integrations-Program-to-Bring-AI-Powered-Front-Desk-and-Maintenance-Operations-to-Rent-Manager-Customers">Vendoroo integration announcement</a> &middot;
+    <a href="https://vendoroo.ai/product">Vendoroo product</a> &middot;
+    <a href="https://averyiq.com/">Avery (AveryIQ)</a> &middot;
+    <a href="https://www.hiresuper.com/">Super</a> &middot;
+    <a href="https://www.getzuma.com/collections-ai">Zuma Collections AI</a> &middot;
+    <a href="https://aitoolsbakery.com/blog/eliseai-review/">EliseAI pricing</a> &middot;
+    <a href="https://propertymeld.com/pricing/">Property Meld</a> &middot;
+    <a href="https://www.capterra.com/p/149045/Property-Meld/">Property Meld preventive maintenance</a>
+  </div>
+</footer>
+
+</div>
